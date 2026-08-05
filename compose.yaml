@@ -1,0 +1,6 @@
+﻿# Punto de entrada raíz: permite `docker compose up` desde la raíz del repo.
+# El archivo canónico vive en infra/ (ADR-0007); este solo lo incluye.
+name: passly
+
+include:
+  - infra/docker-compose.yml
