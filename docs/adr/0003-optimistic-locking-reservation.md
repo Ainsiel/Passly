@@ -1,0 +1,3 @@
+# Concurrencia de reserva con optimistic locking e idempotencia
+
+La Capacidad de un Evento se controla con optimistic locking: una columna `@Version` en Event; la transacción de reserva valida la Disponibilidad y la descuenta de forma atómica, fallando con conflicto de concurrencia cuando dos Usuarios compiten por los últimos Tickets. Se complementa con una idempotency key en el `POST /reservas` para que los reintentos (doble clic, retry del cliente) no dupliquen Reservas. Se descartó locking pesimista (`SELECT FOR UPDATE`, bloquea filas innecesariamente) y Redis distribuido (infraestructura adicional sin necesidad real a este volumen; queda documentado como evolución en un futuro ciclo).
