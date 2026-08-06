@@ -97,11 +97,12 @@ Passly/
 │   └── web/                    # Next.js (App Router, shadcn/ui)
 ├── services/
 │   ├── gateway/                # Spring Cloud Gateway (routing, CORS, auth)
-│   ├── catalog-service/        # Eventos (bounded context: catálogo)
-│   ├── booking-service/        # Reservas (bounded context: reservas) — concurrencia + outbox
+│   ├── catalog-service/        # Eventos (bounded context: catálogo) — CRUD + outbox → RabbitMQ
+│   ├── booking-service/        # Reservas (bounded context: reservas) — proyección de eventos + concurrencia
 │   └── notification-service/   # Emails (bounded context: notificaciones)
 ├── infra/
-│   ├── docker-compose.yml      # núcleo (postgres, keycloak, catalog, gateway, web) + profiles messaging/observability
+│   ├── docker-compose.yml      # núcleo (postgres, keycloak, catalog, gateway, web) + profiles observability
+│   ├── docker-compose.messaging.yml  # overlay: rabbitmq + booking-service + catalog→broker (mensajería)
 │   ├── keycloak/               # realm-export.json (import automático)
 │   └── k6/                     # escenarios de carga (spike/soak/capacity)
 ├── docs/

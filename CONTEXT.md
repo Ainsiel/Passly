@@ -29,13 +29,17 @@ _Avoid_: booking, order, compra, orden
 Entidad emitida dentro de una Reserva, con código único y código QR. Se entrega por email.
 _Avoid_: entrada, boleto, pass
 
+**Proyección de Evento**:
+Reflejo del Evento en el contexto Reservas, sincronizado desde Catálogo vía RabbitMQ (ADR-0011). Mantiene Capacidad y Disponibilidad para controlar la concurrencia de las Reservas; no es gestionable por el Usuario.
+_Avoid_: evento duplicado
+
 ### Contextos
 
 **Catálogo**:
 Contexto que posee los Eventos y su CRUD, protegido por el rol `ADMIN`.
 
 **Reservas**:
-Contexto que posee las Reservas y los Tickets, y controla la concurrencia sobre la Capacidad.
+Contexto que posee las Reservas y los Tickets, y controla la concurrencia sobre la Capacidad. Mantiene la Proyección de Evento sincronizada desde Catálogo.
 
 **Notificaciones**:
 Contexto que entrega los Tickets por email.
