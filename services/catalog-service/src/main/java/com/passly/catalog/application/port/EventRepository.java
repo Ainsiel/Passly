@@ -16,4 +16,8 @@ public interface EventRepository {
 	Page<Event> search(EventFilter filter, Pageable pageable);
 
 	Optional<Event> findById(Long id);
+
+	Event save(Event event);
+
+	void deleteById(Long id);
 }

@@ -83,6 +83,24 @@
         "ADMIN",
         "USER"
       ]
+    },
+    {
+      "username": "user",
+      "enabled": true,
+      "email": "user@passly.local",
+      "emailVerified": true,
+      "firstName": "Usuario",
+      "lastName": "Passly",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "USER"
+      ]
     }
   ]
 }

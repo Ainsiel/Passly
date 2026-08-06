@@ -80,5 +80,16 @@ class EventQueryServiceTest {
 		public Optional<Event> findById(Long id) {
 			return Optional.ofNullable(byId.get(id));
 		}
+
+		@Override
+		public Event save(Event event) {
+			byId.put(event.id(), event);
+			return event;
+		}
+
+		@Override
+		public void deleteById(Long id) {
+			byId.remove(id);
+		}
 	}
 }
