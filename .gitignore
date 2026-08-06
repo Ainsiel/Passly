@@ -23,7 +23,7 @@ services/*/.mvn/wrapper/maven-wrapper.jar
 # Node / Next.js
 node_modules/
 .next/
-out/
+apps/web/out/
 dist/
 *.tsbuildinfo
 next-env.d.ts
