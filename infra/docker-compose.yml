@@ -6,7 +6,14 @@ x-healthcheck-defaults: &healthcheck-defaults
   retries: 10
   start_period: 10s
 
+x-app-healthcheck: &app-healthcheck
+  interval: 10s
+  timeout: 5s
+  retries: 6
+  start_period: 20s
+
 services:
+  # --- Núcleo (siempre encendido para desarrollo local) ---
   postgres:
     image: postgres:17-alpine
     container_name: passly-postgres
@@ -33,6 +40,8 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
       KC_HEALTH_ENABLED: "true"
+      KC_HOSTNAME: http://localhost:8080
+      KC_HOSTNAME_STRICT: "false"
     ports:
       - "8080:8080"
     volumes:
@@ -44,9 +53,67 @@ services:
       retries: 20
       start_period: 30s
 
+  catalog-service:
+    build: ../services/catalog-service
+    container_name: passly-catalog
+    environment:
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:8080/realms/passly
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:8080/realms/passly/protocol/openid-connect/certs
+    ports:
+      - "8081:8081"
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8081/actuator/health || exit 1"]
+      <<: *app-healthcheck
+      start_period: 30s
+
+  gateway:
+    build: ../services/gateway
+    container_name: passly-gateway
+    environment:
+      PASSLY_CATALOG_URI: http://catalog-service:8081
+    ports:
+      - "8090:8090"
+    depends_on:
+      catalog-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8090/actuator/health || exit 1"]
+      <<: *app-healthcheck
+      start_period: 30s
+
+  web:
+    build: ../apps/web
+    container_name: passly-web
+    environment:
+      HOSTNAME: "0.0.0.0"
+      AUTH_URL: http://localhost:3000
+      AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET es obligatorio (se genera en infra/.env)}
+      AUTH_KEYCLOAK_ID: passly-web
+      AUTH_KEYCLOAK_SECRET: ""
+      AUTH_KEYCLOAK_ISSUER: http://localhost:8080/realms/passly
+      AUTH_KEYCLOAK_AUTH_URL: http://localhost:8080/realms/passly/protocol/openid-connect/auth
+      AUTH_KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/passly/protocol/openid-connect/token
+      AUTH_KEYCLOAK_USERINFO_URL: http://keycloak:8080/realms/passly/protocol/openid-connect/userinfo
+      PASSLY_CATALOG_ME_URL: http://gateway:8090/api/catalog/me
+    ports:
+      - "3000:3000"
+    depends_on:
+      gateway:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/api/auth/providers || exit 1"]
+      <<: *app-healthcheck
+
+  # --- Opcionales (profile 'messaging') ---
   rabbitmq:
     image: rabbitmq:4.3.4-management-alpine
     container_name: passly-rabbitmq
+    profiles: ["messaging"]
     environment:
       RABBITMQ_DEFAULT_USER: passly
       RABBITMQ_DEFAULT_PASS: passly
@@ -64,6 +131,7 @@ services:
   mailhog:
     image: mailhog/mailhog:v1.0.1
     container_name: passly-mailhog
+    profiles: ["messaging"]
     ports:
       - "1025:1025"
       - "8025:8025"
@@ -72,9 +140,11 @@ services:
       <<: *healthcheck-defaults
       timeout: 5s
 
+  # --- Opcionales (profile 'observability') ---
   prometheus:
     image: prom/prometheus:v2.55.1
     container_name: passly-prometheus
+    profiles: ["observability"]
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
@@ -90,12 +160,13 @@ services:
   grafana:
     image: grafana/grafana-oss:11.6.0
     container_name: passly-grafana
+    profiles: ["observability"]
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_USERS_ALLOW_SIGN_UP: "false"
     ports:
-      - "3000:3000"
+      - "3001:3000"
     volumes:
       - grafana-data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro

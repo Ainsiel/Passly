@@ -4,6 +4,7 @@
   "enabled": true,
   "sslRequired": "external",
   "accessTokenLifespan": 300,
+  "registrationAllowed": true,
   "roles": {
     "realm": [
       {
@@ -34,6 +35,19 @@
     ]
   },
   "clients": [
+    {
+      "clientId": "admin-cli",
+      "name": "${client_admin-cli}",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "secret": "admin-cli-secret",
+      "attributes": {
+        "client.use.lightweight.access.token.enabled": "false"
+      }
+    },
     {
       "clientId": "passly-web",
       "name": "Passly Web",
