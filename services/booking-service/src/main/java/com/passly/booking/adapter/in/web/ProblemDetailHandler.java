@@ -15,6 +15,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -35,6 +36,7 @@ public class ProblemDetailHandler {
 	private static final URI SOLD_OUT = URI.create("urn:problem-type:sold-out");
 	private static final URI EVENT_NOT_BOOKABLE = URI.create("urn:problem-type:event-not-bookable");
 	private static final URI TOO_MANY_TICKETS = URI.create("urn:problem-type:too-many-tickets");
+	private static final URI CONCURRENCY_CONFLICT = URI.create("urn:problem-type:concurrency-conflict");
 	private static final URI BAD_REQUEST = URI.create("urn:problem-type:bad-request");
 	private static final URI VALIDATION_ERROR = URI.create("urn:problem-type:validation-error");
 
@@ -75,6 +77,22 @@ public class ProblemDetailHandler {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
 		problem.setTitle("Demasiados tickets");
 		problem.setType(TOO_MANY_TICKETS);
+		return problem;
+	}
+
+	/**
+	 * Conflicto de optimistic locking que agotó los reintentos del caso de uso:
+	 * dos Reservas concurrentes compitieron por los últimos Tickets y esta
+	 * perdió. Aunque el reintento interno normalmente lo resuelve con 409
+	 * sold-out, este es el cortafuegos que garantiza que nunca se devuelva un
+	 * 500: los perdedores siempre reciben un 4xx (AC del ticket #7).
+	 */
+	@ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+	ProblemDetail handleOptimisticLockingConflict(ObjectOptimisticLockingFailureException ex) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+			"Conflicto de concurrencia: reintenta la reserva");
+		problem.setTitle("Conflicto de concurrencia");
+		problem.setType(CONCURRENCY_CONFLICT);
 		return problem;
 	}
 
