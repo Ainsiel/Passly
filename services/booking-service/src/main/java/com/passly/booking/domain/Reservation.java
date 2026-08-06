@@ -73,6 +73,17 @@ public final class Reservation {
 			ReservationStatus.ACTIVE, tickets, now);
 	}
 
+	/**
+	 * Reconstruye una Reserva persistida (anti-corrupción de lectura). El estado
+	 * viene tal cual está en la BD; no se revalidan las invariantes de {@code book}
+	 * porque ya se validaron en el momento de crearla.
+	 */
+	public static Reservation rehydrate(UUID id, String userId, Long eventId, String eventName,
+			LocalDateTime startsAt, BigDecimal price, ReservationStatus status, List<Ticket> tickets,
+			LocalDateTime createdAt) {
+		return new Reservation(id, userId, eventId, eventName, startsAt, price, status, tickets, createdAt);
+	}
+
 	public UUID id() {
 		return id;
 	}

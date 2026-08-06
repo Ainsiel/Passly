@@ -16,12 +16,29 @@ spring:
     port: ${SPRING_RABBITMQ_PORT:5672}
     username: ${SPRING_RABBITMQ_USERNAME:passly}
     password: ${SPRING_RABBITMQ_PASSWORD:passly}
+  mvc:
+    problemdetails:
+      enabled: true
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${PASSLY_ISSUER_URI:http://localhost:8080/realms/passly}
+          jwk-set-uri: ${PASSLY_JWK_SET_URI:}
 
 server:
   port: 8082
+
+passly:
+  booking:
+    max-tickets-per-reservation: 4
+    ticket-qr-url-template: https://passly.local/tickets/{code}
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+  health:
+    rabbit:
+      enabled: false

@@ -11,12 +11,14 @@ import java.util.concurrent.TimeUnit;
 import com.passly.booking.adapter.out.persistence.EventProjectionJpaEntity;
 import com.passly.booking.adapter.out.persistence.EventProjectionJpaRepository;
 import com.passly.booking.support.AbstractMessagingIntegrationTest;
+import com.passly.booking.support.StubJwtDecoderConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 
 /**
  * Test D: el consumidor de eventos del catálogo mantiene la proyección de
@@ -25,6 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest;
  * romper el consumidor.
  */
 @SpringBootTest
+@Import(StubJwtDecoderConfiguration.class)
 class CatalogEventConsumerIntegrationTest extends AbstractMessagingIntegrationTest {
 
 	@Autowired
