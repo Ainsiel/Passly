@@ -101,7 +101,7 @@ Passly/
 │   ├── booking-service/        # Reservas (bounded context: reservas) — concurrencia + outbox
 │   └── notification-service/   # Emails (bounded context: notificaciones)
 ├── infra/
-│   ├── docker-compose.yml      # postgres xN, keycloak, mailhog, rabbitmq, prometheus, grafana
+│   ├── docker-compose.yml      # núcleo (postgres, keycloak, catalog, gateway, web) + profiles messaging/observability
 │   ├── keycloak/               # realm-export.json (import automático)
 │   └── k6/                     # escenarios de carga (spike/soak/capacity)
 ├── docs/
