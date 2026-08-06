@@ -21,12 +21,11 @@ public class StubJwtDecoderConfiguration {
 	@Bean
 	@Primary
 	JwtDecoder stubJwtDecoder() {
-		Jwt user1 = jwtWithSubject("user-1");
-		Jwt user2 = jwtWithSubject("user-2");
-		return token -> switch (token) {
-			case "user-1" -> user1;
-			case "user-2" -> user2;
-			default -> null;
+		return token -> {
+			if (token == null || !token.startsWith("user-")) {
+				return null;
+			}
+			return jwtWithSubject(token);
 		};
 	}
 

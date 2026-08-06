@@ -13,7 +13,8 @@ import com.passly.booking.domain.EventProjection;
 import com.passly.booking.domain.Reservation;
 import com.passly.booking.domain.Ticket;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 public class ReservationService {
+
+	private static final int MAX_CONFLICT_ATTEMPTS = 3;
 
 	private final ReservationService self;
 	private final ReservationRepository reservationRepository;
@@ -48,15 +51,29 @@ public class ReservationService {
 	}
 
 	public BookingResult book(String userId, String idempotencyKey, BookReservationCommand command) {
-		try {
-			return self.bookTransactional(userId, idempotencyKey, command);
-		}
-		catch (DuplicateKeyException e) {
-			// Dos requests concurrentes con la misma key (o el mismo Usuario/Evento):
-			// la restricción única ya se ha guardado; se devuelve la Reserva ganadora.
-			Reservation existing = reservationRepository.findByUserIdAndIdempotencyKey(userId, idempotencyKey)
-				.orElseThrow(() -> new DuplicateReservationException(userId, command.eventId()));
-			return BookingResult.replayed(existing);
+		int attempts = 0;
+		while (true) {
+			try {
+				return self.bookTransactional(userId, idempotencyKey, command);
+			}
+			catch (ObjectOptimisticLockingFailureException e) {
+				// Dos Reservas concurrentes leen la misma versión de la proyección y
+				// compiten por los últimos Tickets (ADR-0003): la perdedora reintenta
+				// sobre la versión nueva; si ya no queda Disponibilidad, el dominio
+				// lanza SoldOutException (409) en el reintento.
+				if (++attempts >= MAX_CONFLICT_ATTEMPTS) {
+					throw e;
+				}
+			}
+			catch (DataIntegrityViolationException e) {
+				// Violación de una restricción única por concurrencia: o bien la
+				// idempotency key ya se ha guardado (replay del cliente) o bien el
+				// Usuario/Evento ya tiene una Reserva activa (conflicto). Se distingue
+				// consultando por la key: si existe, es un reenvío.
+				Reservation existing = reservationRepository.findByUserIdAndIdempotencyKey(userId, idempotencyKey)
+					.orElseThrow(() -> new DuplicateReservationException(userId, command.eventId()));
+				return BookingResult.replayed(existing);
+			}
 		}
 	}
 
