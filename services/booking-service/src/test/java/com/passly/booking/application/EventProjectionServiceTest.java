@@ -34,5 +34,10 @@ class EventProjectionServiceTest {
 		public void upsert(EventProjection projection) {
 			upserted.add(projection);
 		}
+
+		@Override
+		public java.util.Optional<EventProjection> reserve(Long eventId, int quantity) {
+			throw new UnsupportedOperationException();
+		}
 	}
 }

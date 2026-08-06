@@ -12,6 +12,12 @@ spring:
                 - Path=/api/catalog/**
               filters:
                 - StripPrefix=2
+            - id: booking
+              uri: ${PASSLY_BOOKING_URI:http://localhost:8082}
+              predicates:
+                - Path=/api/booking/**
+              filters:
+                - StripPrefix=2
 
 server:
   port: 8090
