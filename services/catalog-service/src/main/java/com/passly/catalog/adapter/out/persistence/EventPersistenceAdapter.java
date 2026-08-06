@@ -32,4 +32,14 @@ public class EventPersistenceAdapter implements EventRepository {
 	public Optional<Event> findById(Long id) {
 		return eventJpaRepository.findById(id).map(EventMapper::toDomain);
 	}
+
+	@Override
+	public Event save(Event event) {
+		return EventMapper.toDomain(eventJpaRepository.save(EventMapper.toEntity(event)));
+	}
+
+	@Override
+	public void deleteById(Long id) {
+		eventJpaRepository.deleteById(id);
+	}
 }
