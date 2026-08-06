@@ -1,6 +1,23 @@
 spring:
   application:
     name: catalog-service
+  datasource:
+    url: ${PASSLY_CATALOG_DB_URL:jdbc:postgresql://localhost:5432/catalog}
+    username: ${PASSLY_CATALOG_DB_USER:passly}
+    password: ${PASSLY_CATALOG_DB_PASSWORD:passly}
+  data:
+    web:
+      pageable:
+        max-page-size: 100
+  flyway:
+    locations: classpath:db/migration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  mvc:
+    problemdetails:
+      enabled: true
   security:
     oauth2:
       resourceserver:
