@@ -1,0 +1,65 @@
+# Overlay opcional de mensajería (perfil 'messaging').
+#
+# Uso:
+#   docker compose -f docker-compose.yml -f docker-compose.messaging.yml up
+#
+# Levanta RabbitMQ y booking-service, y cablea catalog-service al broker.
+# Necesita el overlay (y no solo `--profile messaging`) porque Compose no permite
+# que un servicio sin perfil dependa de otro con perfil desactivado.
+name: passly
+
+services:
+  rabbitmq:
+    image: rabbitmq:4.3.4-management-alpine
+    container_name: passly-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: passly
+      RABBITMQ_DEFAULT_PASS: passly
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+
+  catalog-service:
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: passly
+      SPRING_RABBITMQ_PASSWORD: passly
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  booking-service:
+    build: ../services/booking-service
+    container_name: passly-booking
+    environment:
+      PASSLY_BOOKING_DB_URL: jdbc:postgresql://postgres:5432/booking
+      PASSLY_BOOKING_DB_USER: passly
+      PASSLY_BOOKING_DB_PASSWORD: passly
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: passly
+      SPRING_RABBITMQ_PASSWORD: passly
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8082/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+volumes:
+  rabbitmq-data:

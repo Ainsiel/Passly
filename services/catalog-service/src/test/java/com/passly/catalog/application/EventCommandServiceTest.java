@@ -5,15 +5,21 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.passly.catalog.application.port.EventPublisher;
 import com.passly.catalog.application.port.EventRepository;
+import com.passly.catalog.domain.CatalogEvent;
 import com.passly.catalog.domain.Event;
 import com.passly.catalog.domain.EventCategory;
+import com.passly.catalog.domain.EventCreated;
 import com.passly.catalog.domain.EventFilter;
+import com.passly.catalog.domain.EventSnapshot;
+import com.passly.catalog.domain.EventUpdated;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -22,7 +28,8 @@ import org.springframework.data.domain.Pageable;
 class EventCommandServiceTest {
 
 	private final FakeRepository repository = new FakeRepository();
-	private final EventCommandService service = new EventCommandService(repository);
+	private final FakePublisher publisher = new FakePublisher();
+	private final EventCommandService service = new EventCommandService(repository, publisher);
 
 	@Test
 	void createPersistsANewEventWithoutReservations() {
@@ -95,6 +102,52 @@ class EventCommandServiceTest {
 			.hasMessageContaining("15400");
 	}
 
+	@Test
+	void createPublishesAnEventCreatedWithTheCreatedSnapshot() {
+		EventCommand command = command("Noche de Jazz a la Fresca", new BigDecimal("30.00"), 500);
+
+		Event created = service.create(command);
+
+		assertThat(publisher.published()).hasSize(1);
+		assertThat(publisher.published().getFirst()).isInstanceOf(EventCreated.class);
+		EventCreated event = (EventCreated) publisher.published().getFirst();
+		assertThat(event.snapshot()).isEqualTo(EventSnapshot.from(created));
+		assertThat(event.snapshot().available()).isEqualTo(500);
+	}
+
+	@Test
+	void updatePublishesAnEventUpdatedWithTheUpdatedSnapshot() {
+		repository.save(event(7L, "El Avaro de Molière", 400, 120));
+		EventCommand command = command("El Avaro de Molière (nueva versión)", new BigDecimal("32.00"), 450);
+
+		Event updated = service.update(7L, command);
+
+		assertThat(publisher.published()).hasSize(1);
+		assertThat(publisher.published().getFirst()).isInstanceOf(EventUpdated.class);
+		EventUpdated event = (EventUpdated) publisher.published().getFirst();
+		assertThat(event.snapshot()).isEqualTo(EventSnapshot.from(updated));
+		assertThat(event.snapshot().available()).isEqualTo(330);
+	}
+
+	@Test
+	void failedUpdatesDoNotPublishAnything() {
+		repository.save(event(7L, "El Avaro de Molière", 400, 120));
+
+		assertThatThrownBy(() -> service.update(7L, command("El Avaro", new BigDecimal("32.00"), 100)))
+			.isInstanceOf(EventConflictException.class);
+
+		assertThat(publisher.published()).isEmpty();
+	}
+
+	@Test
+	void deleteDoesNotPublishAnything() {
+		repository.save(event(9L, "Taller sin reservas", 300, 0));
+
+		service.delete(9L);
+
+		assertThat(publisher.published()).isEmpty();
+	}
+
 	private static EventCommand command(String name, BigDecimal price, int capacity) {
 		return new EventCommand(name, "Una descripción", EventCategory.CONCIERTO, "Auditorio",
 			LocalDateTime.of(2026, 12, 31, 21, 0), price, capacity);
@@ -133,6 +186,20 @@ class EventCommandServiceTest {
 		@Override
 		public void deleteById(Long id) {
 			store.remove(id);
+		}
+	}
+
+	private static final class FakePublisher implements EventPublisher {
+
+		private final List<CatalogEvent> published = new ArrayList<>();
+
+		@Override
+		public void publish(CatalogEvent event) {
+			published.add(event);
+		}
+
+		List<CatalogEvent> published() {
+			return List.copyOf(published);
 		}
 	}
 }

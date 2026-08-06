@@ -115,24 +115,8 @@ services:
       <<: *app-healthcheck
 
   # --- Opcionales (profile 'messaging') ---
-  rabbitmq:
-    image: rabbitmq:4.3.4-management-alpine
-    container_name: passly-rabbitmq
-    profiles: ["messaging"]
-    environment:
-      RABBITMQ_DEFAULT_USER: passly
-      RABBITMQ_DEFAULT_PASS: passly
-      RABBITMQ_DEFAULT_VHOST: /
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
-    healthcheck:
-      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
-      <<: *healthcheck-defaults
-      start_period: 20s
-
+  # RabbitMQ y booking-service viven en docker-compose.messaging.yml (overlay):
+  # docker compose -f docker-compose.yml -f docker-compose.messaging.yml up
   mailhog:
     image: mailhog/mailhog:v1.0.1
     container_name: passly-mailhog
@@ -183,6 +167,5 @@ services:
 volumes:
   postgres-data:
   keycloak-data:
-  rabbitmq-data:
   prometheus-data:
   grafana-data:

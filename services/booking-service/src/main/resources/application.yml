@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: booking-service
+  datasource:
+    url: ${PASSLY_BOOKING_DB_URL:jdbc:postgresql://localhost:5432/booking}
+    username: ${PASSLY_BOOKING_DB_USER:passly}
+    password: ${PASSLY_BOOKING_DB_PASSWORD:passly}
+  flyway:
+    locations: classpath:db/migration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:passly}
+    password: ${SPRING_RABBITMQ_PASSWORD:passly}
+
+server:
+  port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

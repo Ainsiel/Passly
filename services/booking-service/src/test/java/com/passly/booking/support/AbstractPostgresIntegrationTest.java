@@ -1,4 +1,4 @@
-package com.passly.catalog.support;
+package com.passly.booking.support;
 
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -21,13 +21,5 @@ public abstract class AbstractPostgresIntegrationTest {
 		registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
 		registry.add("spring.datasource.username", POSTGRES::getUsername);
 		registry.add("spring.datasource.password", POSTGRES::getPassword);
-	}
-
-	@DynamicPropertySource
-	static void outboxProperties(DynamicPropertyRegistry registry) {
-		// El ciclo del outbox es determinista en los tests: se invoca
-		// publishPending() explícitamente. El intervalo alto evita que el
-		// poller agote el pool de conexiones durante el teardown.
-		registry.add("passly.outbox.poller.fixed-delay", () -> "3600000");
 	}
 }

@@ -1,0 +1,11 @@
+# Sincronización catalog → booking por RabbitMQ
+
+Los Eventos viven en el contexto Catálogo; Reservas los necesita para conocer Capacidad y Disponibilidad. En lugar de llamadas HTTP internas (ADR-0005), Catálogo publica eventos de dominio (`EventCreated`/`EventUpdated`) al crear o editar un Evento, y Reservas los consume para mantener una proyección idempotente. La publicación usa el outbox transaccional (ADR-0004): la fila de outbox se escribe en la misma transacción que el cambio del Evento y un poller la publica con reintento, de modo que el broker caído no pierde mensajes ni rompe la disponibilidad del Catálogo. El consumidor hace un upsert atómico (`INSERT ... ON CONFLICT DO UPDATE`) en `event_projections`, por lo que mensajes duplicados o reentregados convergen al mismo estado final. El borrado de Eventos no propaga (Catálogo aún no borra Eventos publicados). El contrato wire (`EventChangedMessage`) se duplica en ambos servicios y el type mapping de Jackson usa el id lógico `passly:catalog:event-changed`, de modo que el FQCN no cruza servicios; no hay módulo compartido (ADR-0007).
+
+Topología: exchange topic durable `passly.events`; cola `booking.event-projections`; binding con patrón `catalog.event.#`; routing `catalog.event.created` / `catalog.event.updated`.
+
+### Decisiones y limitaciones conocidas
+
+- **Columna `version`/`@Version`**: intencional y preparada para el optimistic locking de la Reserva (ticket #7). La proyección es idempotente en el estado de negocio; una entrega duplicada solo avanza el contador de versión.
+- **Orden de mensajes (last-write-wins)**: la proyección refleja el último mensaje aplicado; una reentrega de una instantánea antigua puede revertir el estado. Se asume que Catálogo edita eventos con poca frecuencia y que RabbitMQ entrega en orden para una cola single-consumer; si el reordenamiento importara, se añadiría un discriminante de secuencia.
+- **Entrega al broker (at-most-once hasta el routing)**: el outbox garantiza que un Evento no se pierde entre el commit y la publicación; el poller publica con `mandatory=false`, así que un mensaje publicado mientras `booking.event-projections` no está declarada aún se descarta silenciosamente y no se reintenta. Se acepta como limitación del MVP (la cola es durable y se declara al arrancar Reservas, que forma parte del mismo stack).
