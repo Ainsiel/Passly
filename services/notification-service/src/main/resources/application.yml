@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: notification-service
+  rabbitmq:
+    listener:
+      simple:
+        retry:
+          enabled: true
+          max-retries: 2
+          initial-interval: 1s
+          multiplier: 2.0
+          max-interval: 5s
+        default-requeue-rejected: false
+  mail:
+    host: ${MAILHOG_HOST:localhost}
+    port: ${MAILHOG_PORT:1025}
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+passly:
+  notification:
+    email:
+      from: no-reply@passly.dev
+      subject-template: "Tu ticket para {eventName}"
+      my-reservations-url: https://passly.local/reservas
+
+server:
+  port: 8083
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
