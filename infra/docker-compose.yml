@@ -102,6 +102,7 @@ services:
       AUTH_KEYCLOAK_AUTH_URL: http://localhost:8080/realms/passly/protocol/openid-connect/auth
       AUTH_KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/passly/protocol/openid-connect/token
       AUTH_KEYCLOAK_USERINFO_URL: http://keycloak:8080/realms/passly/protocol/openid-connect/userinfo
+      PASSLY_CATALOG_URL: http://gateway:8090/api/catalog
       PASSLY_CATALOG_ME_URL: http://gateway:8090/api/catalog/me
     ports:
       - "3000:3000"

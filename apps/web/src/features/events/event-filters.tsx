@@ -12,7 +12,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, Loader2Icon } from "lucide-react";
 
 const CATEGORIES = [
 	{ value: "", label: "Todas" },
@@ -56,10 +56,10 @@ export function EventFilters() {
 					aria-hidden="true"
 				/>
 				<Input
-					placeholder="Busca eventos..."
+					placeholder="Buscar eventos..."
 					defaultValue={currentQ}
 					onChange={(e) => updateParam("q", e.target.value)}
-					className="pl-9"
+					className="pl-9 h-11 bg-muted/50 border-border/60 focus:bg-background transition-colors"
 					aria-label="Buscar eventos"
 				/>
 			</div>
@@ -67,8 +67,13 @@ export function EventFilters() {
 				defaultValue={currentCategory}
 				onValueChange={(value: string | null) => updateParam("category", value ?? "")}
 			>
-				<SelectTrigger className="w-full sm:w-[180px]" aria-label="Filtrar por categoría">
-					<SelectValue placeholder="Todas las categorías" />
+				<SelectTrigger className="w-full sm:w-[180px] h-11 bg-muted/50 border-border/60" aria-label="Filtrar por categoría">
+					<SelectValue placeholder="Todas las categorías">
+					{(value: string | null) => {
+						if (!value) return "Todas las categorías";
+						return CATEGORIES.find(c => c.value === value)?.label ?? "Todas las categorías";
+					}}
+				</SelectValue>
 				</SelectTrigger>
 				<SelectContent>
 					<SelectGroup>
@@ -82,9 +87,10 @@ export function EventFilters() {
 				</SelectContent>
 			</Select>
 			{isPending && (
-				<span className="text-xs text-muted-foreground" aria-live="polite">
-					Cargando...
-				</span>
+				<div className="flex items-center gap-2 text-xs text-muted-foreground" aria-live="polite">
+					<Loader2Icon className="h-3 w-3 animate-spin" />
+					<span>Cargando...</span>
+				</div>
 			)}
 		</div>
 	);

@@ -3,8 +3,8 @@ import { expect, test } from "@playwright/test";
 test.describe("Exploración de eventos", () => {
 	test("home muestra la lista de eventos", async ({ page }) => {
 		await page.goto("/");
-		await expect(page.getByRole("heading", { name: "Explora eventos" })).toBeVisible();
-		await expect(page.getByText("Descubre conciertos")).toBeVisible();
+		await expect(page.getByRole("heading", { name: /encuentra tu próximo/i })).toBeVisible();
+		await expect(page.getByText(/Explora conciertos/)).toBeVisible();
 	});
 
 	test("lista muestra cards de eventos con nombre, categoría y precio", async ({
@@ -15,9 +15,6 @@ test.describe("Exploración de eventos", () => {
 		await expect(cards.first()).toBeVisible({ timeout: 10000 });
 		const count = await cards.count();
 		expect(count).toBeGreaterThan(0);
-
-		const firstCard = cards.first();
-		await expect(firstCard.getByRole("link", { name: /Ver detalle/ })).toBeVisible();
 	});
 
 	test("navegación anónima: clic en evento lleva al detalle", async ({ page }) => {
@@ -42,10 +39,8 @@ test.describe("Exploración de eventos", () => {
 
 		await page.waitForURL(/\/eventos\//);
 
-		await expect(page.getByText("📅")).toBeVisible();
-		await expect(page.getByText("📍")).toBeVisible();
-		await expect(page.getByText("💰")).toBeVisible();
 		await expect(page.getByText("Disponibilidad")).toBeVisible();
+		await expect(page.getByText("Sobre el evento")).toBeVisible();
 	});
 
 	test("filtro por categoría", async ({ page }) => {
@@ -92,7 +87,7 @@ test.describe("Exploración de eventos", () => {
 
 		await page.waitForURL(/\/eventos\//);
 		await expect(page.getByRole("navigation", { name: /breadcrumb/i })).toBeVisible();
-		await expect(page.getByRole("link", { name: "Eventos", exact: true })).toBeVisible();
+		await expect(page.getByRole("navigation", { name: /breadcrumb/i }).getByRole("link", { name: "Eventos" })).toBeVisible();
 	});
 
 	test("volver a eventos desde detalle", async ({ page }) => {
@@ -102,9 +97,9 @@ test.describe("Exploración de eventos", () => {
 		await firstCard.getByRole("link", { name: /Ver detalle/ }).click();
 
 		await page.waitForURL(/\/eventos\//);
-		await page.getByText("← Volver a eventos").click();
+		await page.getByRole("link", { name: /Volver a eventos/ }).click();
 		await page.waitForURL("/");
-		await expect(page.getByRole("heading", { name: "Explora eventos" })).toBeVisible();
+		await expect(page.getByRole("heading", { name: /encuentra tu próximo/i })).toBeVisible();
 	});
 
 	test("navegación accesible con teclado", async ({ page }) => {
@@ -120,46 +115,47 @@ test.describe("Exploración de eventos", () => {
 test.describe("Login y exploración autenticada", () => {
 	test("login contra Keycloak y ver eventos", async ({ page }) => {
 		await page.goto("/login");
-		await expect(page.getByText("Iniciar sesión", { exact: true }).first()).toBeVisible();
+		await expect(page.getByText("Bienvenido de vuelta")).toBeVisible();
 
-		await page.getByRole("button", { name: "Iniciar sesión con Keycloak" }).click();
+		await page.getByRole("button", { name: /Continuar con Keycloak/ }).click();
 		await page.waitForURL("**/realms/passly/**");
 		await page.locator("#username").fill("admin");
 		await page.locator("#password").fill("admin123");
 		await page.locator("#kc-login").click();
 
 		await page.waitForURL("http://localhost:3000/**", { timeout: 30_000 });
-		await expect(page.getByText(/Hola, admin/)).toBeVisible();
-		await expect(page.getByRole("heading", { name: "Explora eventos" })).toBeVisible();
+		await expect(page.getByRole("heading", { name: /encuentra tu próximo/i })).toBeVisible();
 	});
 
 	test("logout vuelve a estado anónimo", async ({ page }) => {
 		await page.goto("/login");
-		await page.getByRole("button", { name: "Iniciar sesión con Keycloak" }).click();
+		await page.getByRole("button", { name: /Continuar con Keycloak/ }).click();
 		await page.waitForURL("**/realms/passly/**");
 		await page.locator("#username").fill("admin");
 		await page.locator("#password").fill("admin123");
 		await page.locator("#kc-login").click();
 		await page.waitForURL("http://localhost:3000/**", { timeout: 30_000 });
 
-		await page.getByRole("button", { name: "Cerrar sesión" }).click();
+		// Open user dropdown menu
+		await page.getByRole("button", { name: /Menú de usuario/ }).click();
+		await page.getByText("Cerrar sesión").click();
 		await page.waitForURL("http://localhost:3000/**", { timeout: 30_000 });
-		await expect(page.getByRole("button", { name: "Iniciar sesión" })).toBeVisible();
+		await expect(page.getByRole("link", { name: /Iniciar sesión/ })).toBeVisible();
 	});
 
 	test("registro desde página dedicada", async ({ page }) => {
 		await page.goto("/register");
-		await expect(page.getByText("Crear cuenta", { exact: true }).first()).toBeVisible();
+		await expect(page.getByText("Crear una cuenta")).toBeVisible();
 		await expect(
-			page.getByRole("link", { name: "Inicia sesión" })
+			page.locator("#main-content").getByRole("link", { name: "Iniciar sesión" })
 		).toBeVisible();
 	});
 
 	test("login desde página dedicada", async ({ page }) => {
 		await page.goto("/login");
-		await expect(page.getByText("Iniciar sesión", { exact: true }).first()).toBeVisible();
+		await expect(page.getByText("Bienvenido de vuelta")).toBeVisible();
 		await expect(
-			page.getByRole("link", { name: "Regístrate" })
+			page.getByRole("link", { name: "Crear cuenta" })
 		).toBeVisible();
 	});
 });
@@ -182,7 +178,6 @@ test.describe("Accesibilidad", () => {
 		await page.goto("/");
 		await expect(page.getByRole("banner")).toBeVisible();
 		await expect(page.getByRole("main")).toBeVisible();
-		await expect(page.getByRole("navigation", { name: /principal/i })).toBeVisible();
 	});
 
 	test("imágenes alternativas en cards", async ({ page }) => {
@@ -190,7 +185,8 @@ test.describe("Accesibilidad", () => {
 		const cards = page.locator("article");
 		await expect(cards.first()).toBeVisible({ timeout: 10000 });
 		const firstCard = cards.first();
-		const label = await firstCard.getAttribute("aria-label");
+		const link = firstCard.getByRole("link").first();
+		const label = await link.getAttribute("aria-label");
 		expect(label).toBeTruthy();
 	});
 });

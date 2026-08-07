@@ -10,6 +10,7 @@ import {
 	PaginationNext,
 	PaginationPrevious,
 } from "@/components/ui/pagination";
+import { SearchIcon } from "lucide-react";
 import type { EventSummary, PageMeta } from "@/lib/catalog";
 
 interface EventListProps {
@@ -21,10 +22,13 @@ interface EventListProps {
 export function EventList({ events, page, baseParams = "" }: EventListProps) {
 	if (events.length === 0) {
 		return (
-			<div className="py-12 text-center">
-				<p className="text-lg text-muted-foreground">No se encontraron eventos</p>
-				<p className="text-sm text-muted-foreground">
-					Intenta ajustar los filtros de búsqueda
+			<div className="flex flex-col items-center justify-center py-16 text-center">
+				<div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted mb-4">
+					<SearchIcon className="h-8 w-8 text-muted-foreground" />
+				</div>
+				<h3 className="text-lg font-semibold mb-1">No se encontraron eventos</h3>
+				<p className="text-sm text-muted-foreground max-w-sm">
+					Intenta ajustar los filtros de búsqueda o explora otras categorías
 				</p>
 			</div>
 		);
@@ -34,14 +38,20 @@ export function EventList({ events, page, baseParams = "" }: EventListProps) {
 
 	return (
 		<div className="flex flex-col gap-6">
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-				{events.map((event) => (
-					<EventCard key={event.id} event={event} />
+			<div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+				{events.map((event, index) => (
+					<div
+						key={event.id}
+						className="animate-in fade-in slide-up"
+						style={{ animationDelay: `${index * 50}ms` }}
+					>
+						<EventCard event={event} />
+					</div>
 				))}
 			</div>
 
 			{page.totalPages > 1 && (
-				<nav aria-label="Paginación de eventos" className="flex justify-center">
+				<nav aria-label="Paginación de eventos" className="flex justify-center pt-4">
 					<Pagination>
 						<PaginationContent>
 							<PaginationItem>
@@ -85,9 +95,19 @@ export function EventList({ events, page, baseParams = "" }: EventListProps) {
 
 export function EventListSkeleton() {
 	return (
-		<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+		<div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 			{Array.from({ length: 8 }).map((_, i) => (
-				<Skeleton key={i} className="h-[220px] rounded-xl" />
+				<div key={i} className="flex flex-col rounded-xl border border-border/60 bg-card overflow-hidden">
+					<Skeleton className="h-32 sm:h-36 rounded-none" />
+					<div className="flex flex-col gap-3 p-4 sm:p-5">
+						<Skeleton className="h-5 w-3/4" />
+						<Skeleton className="h-4 w-1/2" />
+						<div className="mt-4 pt-4 border-t border-border/50 flex justify-between">
+							<Skeleton className="h-6 w-16" />
+							<Skeleton className="h-4 w-20" />
+						</div>
+					</div>
+				</div>
 			))}
 		</div>
 	);
