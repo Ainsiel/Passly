@@ -19,6 +19,7 @@ public final class Reservation {
 
 	private final UUID id;
 	private final String userId;
+	private final String email;
 	private final Long eventId;
 	private final String eventName;
 	private final LocalDateTime startsAt;
@@ -27,10 +28,11 @@ public final class Reservation {
 	private final List<Ticket> tickets;
 	private final LocalDateTime createdAt;
 
-	private Reservation(UUID id, String userId, Long eventId, String eventName, LocalDateTime startsAt,
+	private Reservation(UUID id, String userId, String email, Long eventId, String eventName, LocalDateTime startsAt,
 			BigDecimal price, ReservationStatus status, List<Ticket> tickets, LocalDateTime createdAt) {
 		this.id = id;
 		this.userId = userId;
+		this.email = email;
 		this.eventId = eventId;
 		this.eventName = eventName;
 		this.startsAt = startsAt;
@@ -42,16 +44,20 @@ public final class Reservation {
 
 	/**
 	 * Crea una Reserva válida sobre un Evento: 1..N Tickets con N <= maxTickets,
-	 * códigos únicos dentro de la Reserva, Usuario identificado y Evento no
-	 * pasado. La Disponibilidad la controla {@link EventProjection#reserve}.
+	 * códigos únicos dentro de la Reserva, Usuario identificado, email del
+	 * destinatario de los Tickets y Evento no pasado. La Disponibilidad la
+	 * controla {@link EventProjection#reserve}.
 	 */
-	public static Reservation book(UUID id, String userId, EventProjection event, List<Ticket> tickets,
+	public static Reservation book(UUID id, String userId, EventProjection event, List<Ticket> tickets, String email,
 			LocalDateTime now, int maxTickets) {
 		if (id == null) {
 			throw new IllegalArgumentException("id no puede ser null");
 		}
 		if (userId == null || userId.isBlank()) {
 			throw new IllegalArgumentException("userId no puede ser null o vacío");
+		}
+		if (email == null || email.isBlank()) {
+			throw new IllegalArgumentException("email no puede ser null o vacío");
 		}
 		if (event == null) {
 			throw new IllegalArgumentException("event no puede ser null");
@@ -69,7 +75,7 @@ public final class Reservation {
 		if (distinctCodes != tickets.size()) {
 			throw new IllegalArgumentException("los códigos de ticket deben ser únicos en la reserva");
 		}
-		return new Reservation(id, userId, event.id(), event.name(), event.startsAt(), event.price(),
+		return new Reservation(id, userId, email, event.id(), event.name(), event.startsAt(), event.price(),
 			ReservationStatus.ACTIVE, tickets, now);
 	}
 
@@ -79,9 +85,9 @@ public final class Reservation {
 	 * porque ya se validaron en el momento de crearla.
 	 */
 	public static Reservation rehydrate(UUID id, String userId, Long eventId, String eventName,
-			LocalDateTime startsAt, BigDecimal price, ReservationStatus status, List<Ticket> tickets,
+			LocalDateTime startsAt, BigDecimal price, ReservationStatus status, List<Ticket> tickets, String email,
 			LocalDateTime createdAt) {
-		return new Reservation(id, userId, eventId, eventName, startsAt, price, status, tickets, createdAt);
+		return new Reservation(id, userId, email, eventId, eventName, startsAt, price, status, tickets, createdAt);
 	}
 
 	public UUID id() {
@@ -90,6 +96,10 @@ public final class Reservation {
 
 	public String userId() {
 		return userId;
+	}
+
+	public String email() {
+		return email;
 	}
 
 	public Long eventId() {

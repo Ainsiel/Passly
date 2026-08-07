@@ -140,7 +140,8 @@ class BookingConcurrencyIntegrationTest extends AbstractMessagingIntegrationTest
 		headers.setBearerAuth(user);
 		headers.set("X-Idempotency-Key", idempotencyKey);
 		headers.setContentType(MediaType.APPLICATION_JSON);
-		HttpEntity<String> entity = new HttpEntity<>("{\"eventId\":7,\"quantity\":1}", headers);
+		HttpEntity<String> entity = new HttpEntity<>("{\"eventId\":7,\"quantity\":1,\"email\":\"usuario@passly.local\"}",
+			headers);
 		ResponseEntity<String> response = restTemplate.postForEntity(url("/reservas"), entity, String.class);
 		return response.getStatusCode().value();
 	}

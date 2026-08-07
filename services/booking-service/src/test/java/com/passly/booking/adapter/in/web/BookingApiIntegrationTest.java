@@ -39,7 +39,7 @@ import org.springframework.test.web.servlet.MockMvc;
 class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 
 	private static final String EVENT_BODY = """
-		{"eventId":7,"quantity":%d}
+		{"eventId":7,"quantity":%d,"email":"usuario@passly.local"}
 		""";
 
 	@Autowired
@@ -136,7 +136,7 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"eventId\":8,\"quantity\":1}"))
+				.content("{\"eventId\":8,\"quantity\":1,\"email\":\"usuario@passly.local\"}"))
 			.andExpect(status().isConflict())
 			.andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
 			.andExpect(jsonPath("$.type").value("urn:problem-type:sold-out"))
@@ -162,7 +162,7 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"eventId\":999,\"quantity\":1}"))
+				.content("{\"eventId\":999,\"quantity\":1,\"email\":\"usuario@passly.local\"}"))
 			.andExpect(status().isNotFound())
 			.andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
 			.andExpect(jsonPath("$.type").value("urn:problem-type:event-not-found"))
@@ -178,7 +178,7 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"eventId\":9,\"quantity\":1}"))
+				.content("{\"eventId\":9,\"quantity\":1,\"email\":\"usuario@passly.local\"}"))
 			.andExpect(status().isConflict())
 			.andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
 			.andExpect(jsonPath("$.type").value("urn:problem-type:event-not-bookable"));
@@ -190,7 +190,7 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"eventId\":7,\"quantity\":0}"))
+				.content("{\"eventId\":7,\"quantity\":0,\"email\":\"usuario@passly.local\"}"))
 			.andExpect(status().isBadRequest())
 			.andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
 			.andExpect(jsonPath("$.type").value("urn:problem-type:validation-error"))

@@ -32,6 +32,9 @@ public class ReservationJpaEntity {
 	@Column(name = "user_id", nullable = false, length = 100)
 	private String userId;
 
+	@Column(nullable = false, length = 255)
+	private String email;
+
 	@Column(name = "event_id", nullable = false)
 	private Long eventId;
 
@@ -78,6 +81,14 @@ public class ReservationJpaEntity {
 
 	public void setUserId(String userId) {
 		this.userId = userId;
+	}
+
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
 	}
 
 	public Long getEventId() {
