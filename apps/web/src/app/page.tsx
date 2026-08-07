@@ -1,51 +1,80 @@
-import { auth } from "@/auth";
-import { login, logout, register } from "@/app/actions";
-import { fetchMe } from "@/lib/catalog";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EventFilters } from "@/features/events/event-filters";
+import { EventList, EventListSkeleton } from "@/features/events/event-list";
+import { fetchEvents } from "@/lib/catalog";
+import type { Metadata } from "next";
 
-export default async function HomePage() {
-	const session = await auth();
-	const me = await fetchMe(session?.accessToken);
+export const metadata: Metadata = {
+	title: "Passly — Explora eventos",
+	description: "Encuentra y reserva tickets para los mejores eventos",
+};
+
+interface Props {
+	searchParams: Promise<{
+		q?: string;
+		category?: string;
+		page?: string;
+		size?: string;
+	}>;
+}
+
+export default async function HomePage({ searchParams }: Props) {
+	const params = await searchParams;
+	const page = params.page ? Number(params.page) : 0;
+	const size = params.size ? Number(params.size) : 20;
+
+	let content: Awaited<ReturnType<typeof fetchEvents>>["content"] = [];
+	let meta: Awaited<ReturnType<typeof fetchEvents>>["page"] = {
+		number: 0,
+		size: 20,
+		totalElements: 0,
+		totalPages: 0,
+	};
+
+	try {
+		const result = await fetchEvents({
+			q: params.q,
+			category: params.category,
+			page,
+			size,
+		});
+		content = result.content;
+		meta = result.page;
+		console.log("[HomePage] fetchEvents OK:", content.length, "events");
+	} catch (e) {
+		// API no disponible — mostrar estado vacío
+		console.error("[HomePage] fetchEvents failed:", e);
+	}
+
+	const baseParams = new URLSearchParams();
+	if (params.q) baseParams.set("q", params.q);
+	if (params.category) baseParams.set("category", params.category);
 
 	return (
-		<main>
-			<h1>Passly</h1>
-			<p>Validación de sesión en Server Components contra Keycloak.</p>
-
-			{session?.user ? (
-				<form action={logout}>
-					<p>
-						Sesión iniciada como <strong>{session.user.username ?? session.user.name}</strong>.
-					</p>
-					<p>Roles del JWT: {session.user.roles?.join(", ") || "ninguno"}</p>
-					<button type="submit">Cerrar sesión</button>
-				</form>
-			) : (
-				<form action={login}>
-					<button type="submit">Iniciar sesión con Keycloak</button>
-					<button type="submit" formAction={register}>
-						Registrarse
-					</button>
-				</form>
-			)}
-
-			<section
-				className={me.ok ? "status ok" : "status unauthorized"}
-				data-testid="me-status"
-			>
-				<h2>GET /api/catalog/me vía gateway</h2>
-				<p>
-					HTTP <strong data-testid="me-status-code">{me.status}</strong>
+		<div className="flex flex-col gap-6">
+			<div>
+				<h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+					Explora eventos
+				</h1>
+				<p className="text-muted-foreground">
+					Descubre conciertos, teatro, exposiciones y más
 				</p>
-				{me.ok ? (
-					<p data-testid="me-body">
-						<code>{JSON.stringify(me.body)}</code>
-					</p>
-				) : (
-					<p data-testid="me-body">
-						Sin token válido: el resource-server rechazó la petición.
-					</p>
-				)}
+			</div>
+
+			<Suspense fallback={<EventFiltersSkeleton />}>
+				<EventFilters />
+			</Suspense>
+
+			<section aria-label="Lista de eventos">
+				<Suspense fallback={<EventListSkeleton />}>
+					<EventList events={content} page={meta} baseParams={baseParams.toString()} />
+				</Suspense>
 			</section>
-		</main>
+		</div>
 	);
+}
+
+function EventFiltersSkeleton() {
+	return <Skeleton className="h-10 w-full rounded-md" />;
 }
