@@ -94,7 +94,6 @@ class ReservationOutboxIntegrationTest extends AbstractMessagingIntegrationTest 
 		List<ReservationOutboxJpaEntity> rows = outboxRepository.findAll();
 		assertThat(rows).hasSize(1);
 		ReservationOutboxJpaEntity row = rows.get(0);
-		assertThat(row.getReservationType()).isEqualTo("ReservationCreated");
 		assertThat(row.getPublishedAt()).isNull();
 		JsonNode payload = objectMapper.readTree(row.getPayload());
 		assertThat(payload.get("email").asText()).isEqualTo("usuario@passly.local");
@@ -161,6 +160,27 @@ class ReservationOutboxIntegrationTest extends AbstractMessagingIntegrationTest 
 	}
 
 	@Test
+	void thePublishedPayloadSatisfiesTheNotificationContract() throws Exception {
+		book("user-1", "key-1", 2);
+
+		outboxPoller.publishPending();
+
+		JsonNode payload = receiveMessage();
+		ContractMessage message = objectMapper.treeToValue(payload, ContractMessage.class);
+		assertThat(message).isNotNull();
+		assertThat(message.reservationId()).isNotNull();
+		assertThat(message.email()).isEqualTo("usuario@passly.local");
+		assertThat(message.eventName()).isEqualTo("Noche de Jazz");
+		assertThat(message.startsAt()).isNotNull();
+		assertThat(message.price()).isPositive();
+		assertThat(message.tickets()).hasSize(2);
+		assertThat(message.tickets()).allSatisfy(ticket -> {
+			assertThat(ticket.code()).isNotBlank();
+			assertThat(ticket.qr()).isNotBlank();
+		});
+	}
+
+	@Test
 	void aFailedPublishLeavesTheRowPendingAndTheNextCycleRepublishesIt() throws Exception {
 		book("user-1", "key-1", 1);
 		ReservationOutboxJpaEntity row = outboxRepository.findAll().get(0);
@@ -203,5 +223,24 @@ class ReservationOutboxIntegrationTest extends AbstractMessagingIntegrationTest 
 		assertThat(outboxRepository.findAll())
 			.singleElement()
 			.satisfies(row -> assertThat(row.getPublishedAt()).isNotNull());
+	}
+
+	/**
+	 * Espejo del DTO estricto de notification-service (ADR-0007): valida que el
+	 * payload emitido por booking es consumible por el listener de
+	 * notification, cuyo constructor rechaza campos obligatorios ausentes.
+	 */
+	private record ContractMessage(java.util.UUID reservationId, String email, String eventName,
+			LocalDateTime startsAt, BigDecimal price, List<ContractTicket> tickets) {
+
+		private ContractMessage {
+			if (reservationId == null || email == null || email.isBlank() || eventName == null || startsAt == null
+					|| price == null || tickets == null || tickets.isEmpty()) {
+				throw new IllegalArgumentException("contrato del ticket-reserved violado");
+			}
+		}
+
+		private record ContractTicket(String code, String qr) {
+		}
 	}
 }

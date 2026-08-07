@@ -1,4 +1,4 @@
-package com.passly.notification.adapter.in.messaging;
+package com.passly.notification.application;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -7,10 +7,12 @@ import java.util.UUID;
 
 /**
  * Copia local (ADR-0007) del evento {@code ticket-reserved} que publica
- * booking-service: misma forma del wire, mismo id lógico de tipo. La validación
- * es estructural y estricta para que un mensaje malformado falle de forma
- * determinista en la deserialización y, tras agotar el reintento, termine en la
- * dead-letter queue (AC3).
+ * booking-service: misma forma del wire, mismo id lógico de tipo. Vive en la
+ * capa de aplicación como contrato de entrada del caso de uso; los adaptadores
+ * de entrada (deserialización) y de salida (render/email) dependen de él.
+ * La validación es estructural y estricta para que un mensaje malformado falle
+ * de forma determinista en la deserialización y, tras agotar el reintento,
+ * termine en la dead-letter queue (AC3).
  */
 public record TicketReservedMessage(UUID reservationId, String email, String eventName, LocalDateTime startsAt,
 		BigDecimal price, List<TicketData> tickets) {

@@ -29,9 +29,6 @@ public class ReservationOutboxJpaEntity {
 	@Column(name = "reservation_id", nullable = false)
 	private UUID reservationId;
 
-	@Column(name = "reservation_type", nullable = false, length = 30)
-	private String reservationType;
-
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(nullable = false, columnDefinition = "jsonb")
 	private String payload;
@@ -55,14 +52,6 @@ public class ReservationOutboxJpaEntity {
 
 	public void setReservationId(UUID reservationId) {
 		this.reservationId = reservationId;
-	}
-
-	public String getReservationType() {
-		return reservationType;
-	}
-
-	public void setReservationType(String reservationType) {
-		this.reservationType = reservationType;
 	}
 
 	public String getPayload() {

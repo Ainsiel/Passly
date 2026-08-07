@@ -1,6 +1,6 @@
 package com.passly.notification.adapter.out.email;
 
-import com.passly.notification.adapter.in.messaging.TicketReservedMessage;
+import com.passly.notification.application.TicketReservedMessage;
 import com.passly.notification.config.NotificationProperties;
 import org.springframework.stereotype.Component;
 
@@ -55,6 +55,6 @@ public class TicketEmailRenderer {
 	}
 
 	private String escape(String value) {
-		return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+		return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
 	}
 }

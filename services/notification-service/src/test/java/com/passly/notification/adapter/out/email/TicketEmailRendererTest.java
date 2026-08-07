@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import com.passly.notification.adapter.in.messaging.TicketReservedMessage;
+import com.passly.notification.application.TicketReservedMessage;
 import com.passly.notification.config.NotificationProperties;
 import org.junit.jupiter.api.Test;
 

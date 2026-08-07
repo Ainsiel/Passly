@@ -13,12 +13,12 @@ import org.springframework.stereotype.Component;
  * {@code passly.notification.email.from}.
  */
 @Component
-public class MailhogEmailSender implements EmailSender {
+public class SmtpEmailSender implements EmailSender {
 
 	private final JavaMailSender mailSender;
 	private final NotificationProperties properties;
 
-	public MailhogEmailSender(JavaMailSender mailSender, NotificationProperties properties) {
+	public SmtpEmailSender(JavaMailSender mailSender, NotificationProperties properties) {
 		this.mailSender = mailSender;
 		this.properties = properties;
 	}

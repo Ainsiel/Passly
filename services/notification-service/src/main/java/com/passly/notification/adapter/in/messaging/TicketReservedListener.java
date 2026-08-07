@@ -1,6 +1,7 @@
 package com.passly.notification.adapter.in.messaging;
 
 import com.passly.notification.application.EmailDeliveryService;
+import com.passly.notification.application.TicketReservedMessage;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 

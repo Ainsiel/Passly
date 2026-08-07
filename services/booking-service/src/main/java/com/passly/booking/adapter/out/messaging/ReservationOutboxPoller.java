@@ -15,9 +15,11 @@ import tools.jackson.databind.ObjectMapper;
  * Publica a RabbitMQ las filas pendientes del outbox de Reservas (ADR-0004,
  * ticket #8). Corre cada ~2 segundos (intervalo tipado en
  * {@code OutboxProperties}); si una fila falla se deja pendiente y se
- * reintenta en el siguiente ciclo (entrega at-least-once, que el consumidor de
- * notifications tolera con su cola idempotente/reintento). {@code publishPending()}
- * es invocable desde los tests para hacer el ciclo determinista.
+ * reintenta en el siguiente ciclo (entrega at-least-once). El consumidor de
+ * notifications no deduplica (AC4: sin estado propio), así que un reintento
+ * tras un fallo de ack puede entregar el email dos veces; se acepta como
+ * limitación (ADR-0012). {@code publishPending()} es invocable desde los tests
+ * para hacer el ciclo determinista.
  */
 @Component
 public class ReservationOutboxPoller {

@@ -11,7 +11,7 @@ import java.util.UUID;
 import javax.sql.DataSource;
 
 import com.passly.notification.adapter.in.messaging.RabbitTopology;
-import com.passly.notification.adapter.in.messaging.TicketReservedMessage;
+import com.passly.notification.application.TicketReservedMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.Message;

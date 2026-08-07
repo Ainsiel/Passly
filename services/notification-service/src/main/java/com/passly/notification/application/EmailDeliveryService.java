@@ -1,6 +1,5 @@
 package com.passly.notification.application;
 
-import com.passly.notification.adapter.in.messaging.TicketReservedMessage;
 import com.passly.notification.adapter.out.email.TicketEmailRenderer;
 import org.springframework.stereotype.Service;
 

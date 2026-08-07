@@ -31,7 +31,6 @@ public class ReservationOutboxWriter implements TicketReservationPublisher {
 	public void publish(Reservation reservation) {
 		ReservationOutboxJpaEntity entity = new ReservationOutboxJpaEntity();
 		entity.setReservationId(reservation.id());
-		entity.setReservationType("ReservationCreated");
 		entity.setPayload(objectMapper.writeValueAsString(TicketReservedMessage.from(reservation)));
 		entity.setCreatedAt(LocalDateTime.now());
 		outboxRepository.save(entity);

@@ -1,7 +1,6 @@
 CREATE TABLE reservation_outbox (
     id               BIGSERIAL PRIMARY KEY,
     reservation_id   UUID         NOT NULL,
-    reservation_type VARCHAR(30)  NOT NULL,
     payload          JSONB        NOT NULL,
     created_at       TIMESTAMP    NOT NULL DEFAULT now(),
     published_at     TIMESTAMP
