@@ -57,6 +57,7 @@ public class ReservationPersistenceAdapter implements ReservationRepository {
 		ReservationJpaEntity entity = new ReservationJpaEntity();
 		entity.setId(reservation.id());
 		entity.setUserId(reservation.userId());
+		entity.setEmail(reservation.email());
 		entity.setEventId(reservation.eventId());
 		entity.setEventName(reservation.eventName());
 		entity.setStartsAt(reservation.startsAt());
@@ -81,6 +82,7 @@ public class ReservationPersistenceAdapter implements ReservationRepository {
 			.map(ticket -> new Ticket(ticket.getCode(), ticket.getQr()))
 			.toList();
 		return Reservation.rehydrate(entity.getId(), entity.getUserId(), entity.getEventId(), entity.getEventName(),
-			entity.getStartsAt(), entity.getPrice(), entity.getStatus(), tickets, entity.getCreatedAt());
+			entity.getStartsAt(), entity.getPrice(), entity.getStatus(), tickets, entity.getEmail(),
+			entity.getCreatedAt());
 	}
 }

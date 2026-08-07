@@ -1,7 +1,10 @@
 package com.passly.booking.adapter.in.messaging;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import com.passly.booking.adapter.out.messaging.ReservationTopology;
+import com.passly.booking.adapter.out.messaging.TicketReservedMessage;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
 import org.springframework.amqp.core.Declarables;
@@ -15,9 +18,11 @@ import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Configuración del consumidor de eventos del catálogo: declara exchange,
- * cola y binding, y un conversor que resuelve el id lógico del contrato al
- * DTO local. Spring Boot aplica el conversor al listener container y al
- * {@code RabbitTemplate} automáticamente.
+ * cola y binding, y un conversor que resuelve los id lógicos de ambos
+ * contratos (catalog->booking y booking->notification) a los DTO locales.
+ * Spring Boot aplica el conversor al listener container y al
+ * {@code RabbitTemplate} automáticamente, de modo que el outbox publica con el
+ * mismo mapeo.
  */
 @Configuration
 public class RabbitConsumerConfig {
@@ -34,7 +39,10 @@ public class RabbitConsumerConfig {
 	JacksonJsonMessageConverter jacksonJsonMessageConverter(JsonMapper jsonMapper) {
 		JacksonJsonMessageConverter converter = new JacksonJsonMessageConverter(jsonMapper);
 		DefaultJacksonJavaTypeMapper typeMapper = new DefaultJacksonJavaTypeMapper();
-		typeMapper.setIdClassMapping(Map.of(RabbitTopology.EVENT_CHANGED_TYPE_ID, EventChangedMessage.class));
+		Map<String, Class<?>> idClassMapping = new HashMap<>();
+		idClassMapping.put(RabbitTopology.EVENT_CHANGED_TYPE_ID, EventChangedMessage.class);
+		idClassMapping.put(ReservationTopology.TICKET_RESERVED_TYPE_ID, TicketReservedMessage.class);
+		typeMapper.setIdClassMapping(idClassMapping);
 		converter.setJavaTypeMapper(typeMapper);
 		return converter;
 	}

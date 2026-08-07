@@ -68,7 +68,7 @@ class ResourceServerIntegrationTest extends AbstractMessagingIntegrationTest {
 		mockMvc.perform(post("/reservas")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"eventId\":7,\"quantity\":1}"))
+				.content("{\"eventId\":7,\"quantity\":1,\"email\":\"usuario@passly.local\"}"))
 			.andExpect(status().isUnauthorized());
 	}
 
@@ -85,7 +85,7 @@ class ResourceServerIntegrationTest extends AbstractMessagingIntegrationTest {
 				.header("Authorization", "Bearer " + token)
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"eventId\":7,\"quantity\":2}"))
+				.content("{\"eventId\":7,\"quantity\":2,\"email\":\"usuario@passly.local\"}"))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.eventId").value(7))
 			.andExpect(jsonPath("$.tickets", org.hamcrest.Matchers.hasSize(2)));
@@ -99,14 +99,14 @@ class ResourceServerIntegrationTest extends AbstractMessagingIntegrationTest {
 				.header("Authorization", "Bearer " + token)
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"eventId\":7,\"quantity\":1}"))
+				.content("{\"eventId\":7,\"quantity\":1,\"email\":\"usuario@passly.local\"}"))
 			.andExpect(status().isCreated());
 
 		mockMvc.perform(post("/reservas")
 				.header("Authorization", "Bearer " + token)
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"eventId\":7,\"quantity\":1}"))
+				.content("{\"eventId\":7,\"quantity\":1,\"email\":\"usuario@passly.local\"}"))
 			.andExpect(status().isOk());
 
 		mockMvc.perform(get("/reservas").header("Authorization", "Bearer " + token))

@@ -9,6 +9,7 @@ import java.util.UUID;
 import com.passly.booking.application.port.EventProjectionRepository;
 import com.passly.booking.application.port.ReservationRepository;
 import com.passly.booking.application.port.TicketCodeGenerator;
+import com.passly.booking.application.port.TicketReservationPublisher;
 import com.passly.booking.domain.EventProjection;
 import com.passly.booking.domain.Reservation;
 import com.passly.booking.domain.Ticket;
@@ -36,16 +37,18 @@ public class ReservationService {
 	private final ReservationRepository reservationRepository;
 	private final EventProjectionRepository eventProjectionRepository;
 	private final TicketCodeGenerator codeGenerator;
+	private final TicketReservationPublisher reservationPublisher;
 	private final BookingProperties properties;
 	private final Clock clock;
 
 	public ReservationService(@Lazy ReservationService self, ReservationRepository reservationRepository,
 			EventProjectionRepository eventProjectionRepository, TicketCodeGenerator codeGenerator,
-			BookingProperties properties, Clock clock) {
+			TicketReservationPublisher reservationPublisher, BookingProperties properties, Clock clock) {
 		this.self = self;
 		this.reservationRepository = reservationRepository;
 		this.eventProjectionRepository = eventProjectionRepository;
 		this.codeGenerator = codeGenerator;
+		this.reservationPublisher = reservationPublisher;
 		this.properties = properties;
 		this.clock = clock;
 	}
@@ -95,9 +98,10 @@ public class ReservationService {
 			})
 			.toList();
 		LocalDateTime now = LocalDateTime.now(clock);
-		Reservation reservation = Reservation.book(UUID.randomUUID(), userId, reserved, tickets, now,
+		Reservation reservation = Reservation.book(UUID.randomUUID(), userId, reserved, tickets, command.email(), now,
 			properties.getMaxTicketsPerReservation());
 		reservationRepository.save(reservation, idempotencyKey);
+		reservationPublisher.publish(reservation);
 		return BookingResult.created(reservation);
 	}
 
