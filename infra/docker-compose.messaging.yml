@@ -3,7 +3,10 @@
 # Uso:
 #   docker compose -f docker-compose.yml -f docker-compose.messaging.yml up
 #
-# Levanta RabbitMQ y booking-service, y cablea catalog-service al broker.
+# Levanta RabbitMQ, booking-service y notification-service, y cablea
+# catalog-service al broker. Mailhog (SMTP de desarrollo) se activa con el
+# perfil 'messaging' del compose base:
+#   docker compose -f docker-compose.yml -f docker-compose.messaging.yml --profile messaging up
 # Necesita el overlay (y no solo `--profile messaging`) porque Compose no permite
 # que un servicio sin perfil dependa de otro con perfil desactivado.
 name: passly
@@ -44,6 +47,8 @@ services:
       PASSLY_BOOKING_DB_URL: jdbc:postgresql://postgres:5432/booking
       PASSLY_BOOKING_DB_USER: passly
       PASSLY_BOOKING_DB_PASSWORD: passly
+      PASSLY_ISSUER_URI: http://localhost:8080/realms/passly
+      PASSLY_JWK_SET_URI: http://keycloak:8080/realms/passly/protocol/openid-connect/certs
       SPRING_RABBITMQ_HOST: rabbitmq
       SPRING_RABBITMQ_USERNAME: passly
       SPRING_RABBITMQ_PASSWORD: passly
@@ -56,6 +61,27 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8082/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+
+  notification-service:
+    build: ../services/notification-service
+    container_name: passly-notification
+    environment:
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: passly
+      SPRING_RABBITMQ_PASSWORD: passly
+      MAILHOG_HOST: mailhog
+      MAILHOG_PORT: 1025
+    ports:
+      - "8083:8083"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8083/actuator/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 6
