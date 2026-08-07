@@ -97,13 +97,18 @@ services:
       AUTH_URL: http://localhost:3000
       AUTH_SECRET: ${AUTH_SECRET:?AUTH_SECRET es obligatorio (se genera en infra/.env)}
       AUTH_KEYCLOAK_ID: passly-web
-      AUTH_KEYCLOAK_SECRET: ""
+      AUTH_KEYCLOAK_SECRET: "passly-web-secret"
       AUTH_KEYCLOAK_ISSUER: http://localhost:8080/realms/passly
       AUTH_KEYCLOAK_AUTH_URL: http://localhost:8080/realms/passly/protocol/openid-connect/auth
       AUTH_KEYCLOAK_TOKEN_URL: http://keycloak:8080/realms/passly/protocol/openid-connect/token
       AUTH_KEYCLOAK_USERINFO_URL: http://keycloak:8080/realms/passly/protocol/openid-connect/userinfo
       PASSLY_CATALOG_URL: http://gateway:8090/api/catalog
       PASSLY_CATALOG_ME_URL: http://gateway:8090/api/catalog/me
+      KEYCLOAK_BASE_URL: http://keycloak:8080
+      KEYCLOAK_REALM: passly
+      KEYCLOAK_ADMIN_CLIENT_ID: admin-cli
+      KEYCLOAK_ADMIN_USERNAME: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
     ports:
       - "3000:3000"
     depends_on:

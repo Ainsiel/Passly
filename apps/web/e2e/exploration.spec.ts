@@ -115,28 +115,23 @@ test.describe("Exploración de eventos", () => {
 test.describe("Login y exploración autenticada", () => {
 	test("login contra Keycloak y ver eventos", async ({ page }) => {
 		await page.goto("/login");
-		await expect(page.getByText("Bienvenido de vuelta")).toBeVisible();
+		await expect(page.getByRole("heading", { name: /Bienvenido de vuelta/ })).toBeVisible();
 
-		await page.getByRole("button", { name: /Continuar con Keycloak/ }).click();
-		await page.waitForURL("**/realms/passly/**");
-		await page.locator("#username").fill("admin");
-		await page.locator("#password").fill("admin123");
-		await page.locator("#kc-login").click();
+		await page.getByLabel("Email").fill("admin@passly.local");
+		await page.getByLabel("Contraseña").fill("admin123");
+		await page.getByRole("button", { name: /Iniciar sesión/ }).click();
 
-		await page.waitForURL("http://localhost:3000/**", { timeout: 30_000 });
+		await page.waitForURL("http://localhost:3000/", { timeout: 30_000 });
 		await expect(page.getByRole("heading", { name: /encuentra tu próximo/i })).toBeVisible();
 	});
 
 	test("logout vuelve a estado anónimo", async ({ page }) => {
 		await page.goto("/login");
-		await page.getByRole("button", { name: /Continuar con Keycloak/ }).click();
-		await page.waitForURL("**/realms/passly/**");
-		await page.locator("#username").fill("admin");
-		await page.locator("#password").fill("admin123");
-		await page.locator("#kc-login").click();
-		await page.waitForURL("http://localhost:3000/**", { timeout: 30_000 });
+		await page.getByLabel("Email").fill("admin@passly.local");
+		await page.getByLabel("Contraseña").fill("admin123");
+		await page.getByRole("button", { name: /Iniciar sesión/ }).click();
+		await page.waitForURL("http://localhost:3000/", { timeout: 30_000 });
 
-		// Open user dropdown menu
 		await page.getByRole("button", { name: /Menú de usuario/ }).click();
 		await page.getByText("Cerrar sesión").click();
 		await page.waitForURL("http://localhost:3000/**", { timeout: 30_000 });
@@ -145,17 +140,20 @@ test.describe("Login y exploración autenticada", () => {
 
 	test("registro desde página dedicada", async ({ page }) => {
 		await page.goto("/register");
-		await expect(page.getByText("Crear una cuenta")).toBeVisible();
-		await expect(
-			page.locator("#main-content").getByRole("link", { name: "Iniciar sesión" })
-		).toBeVisible();
+		await expect(page.getByRole("heading", { name: /Crear una cuenta/ })).toBeVisible();
+		await expect(page.getByRole("textbox", { name: "Nombre", exact: true })).toBeVisible();
+		await expect(page.getByLabel("Email")).toBeVisible();
+		await expect(page.getByLabel("Nombre de usuario")).toBeVisible();
+		await expect(page.getByLabel("Contraseña")).toBeVisible();
 	});
 
 	test("login desde página dedicada", async ({ page }) => {
 		await page.goto("/login");
-		await expect(page.getByText("Bienvenido de vuelta")).toBeVisible();
+		await expect(page.getByRole("heading", { name: /Bienvenido de vuelta/ })).toBeVisible();
+		await expect(page.getByLabel("Email")).toBeVisible();
+		await expect(page.getByLabel("Contraseña")).toBeVisible();
 		await expect(
-			page.getByRole("link", { name: "Crear cuenta" })
+			page.locator("#main-content").getByRole("link", { name: "Crear cuenta" })
 		).toBeVisible();
 	});
 });
