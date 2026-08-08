@@ -142,9 +142,9 @@ export function EventForm({ initialData, action, mode }: EventFormProps) {
 
 			<div className="flex flex-col gap-2">
 				<Label>Categoría</Label>
+				<input type="hidden" name="category" value={category} />
 				<Select
-					name="category"
-					value={category}
+					defaultValue={category}
 					onValueChange={(val) => setCategory(val as EventCategory)}
 				>
 					<SelectTrigger className="w-full">

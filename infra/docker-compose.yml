@@ -79,6 +79,7 @@ services:
     container_name: passly-gateway
     environment:
       PASSLY_CATALOG_URI: http://catalog-service:8081
+      PASSLY_BOOKING_URI: http://booking-service:8082
     ports:
       - "8090:8090"
     depends_on:
