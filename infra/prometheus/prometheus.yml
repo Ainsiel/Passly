@@ -7,6 +7,22 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9090"]
 
-  # Los servicios (gateway, catalog-service, booking-service, notification-service)
-  # exponen métricas de Actuator+Micrometer en /actuator/prometheus y se añadirán
-  # como jobs aquí en sus respectivos tickets.
+  - job_name: catalog-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["catalog-service:8081"]
+
+  - job_name: booking-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["booking-service:8082"]
+
+  - job_name: notification-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["notification-service:8083"]
+
+  - job_name: gateway
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["gateway:8090"]

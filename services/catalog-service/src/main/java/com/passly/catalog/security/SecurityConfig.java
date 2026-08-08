@@ -26,7 +26,7 @@ public class SecurityConfig {
 			.csrf(csrf -> csrf.disable())
 			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 			.authorizeHttpRequests(authorize -> authorize
-				.requestMatchers("/actuator/health").permitAll()
+				.requestMatchers("/actuator/health", "/actuator/prometheus").permitAll()
 				.requestMatchers(HttpMethod.GET, "/events/**").permitAll()
 				.requestMatchers(HttpMethod.POST, "/events").hasRole("ADMIN")
 				.requestMatchers(HttpMethod.PUT, "/events/**").hasRole("ADMIN")
