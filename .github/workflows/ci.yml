@@ -95,7 +95,7 @@ jobs:
       - name: Start stack
         working-directory: infra
         run: |
-          docker compose -f docker-compose.yml -f docker-compose.messaging.yml up -d
+          docker compose --profile messaging -f docker-compose.yml -f docker-compose.messaging.yml up -d
 
       - name: Wait for services to be healthy
         run: |
@@ -108,6 +108,7 @@ jobs:
             passly-rabbitmq
             passly-booking
             passly-notification
+            passly-mailhog
           )
           TIMEOUT=300
           ELAPSED=0
@@ -167,4 +168,4 @@ jobs:
       - name: Teardown
         if: always()
         working-directory: infra
-        run: docker compose -f docker-compose.yml -f docker-compose.messaging.yml down -v
+        run: docker compose --profile messaging -f docker-compose.yml -f docker-compose.messaging.yml down -v
