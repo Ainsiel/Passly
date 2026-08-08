@@ -54,6 +54,14 @@ export async function Header() {
 								Mis reservas
 							</Link>
 						)}
+						{session?.user?.roles?.includes("ADMIN") && (
+							<Link
+								href="/admin"
+								className="px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+							>
+								Admin
+							</Link>
+						)}
 					</nav>
 				</div>
 

@@ -19,12 +19,11 @@ const CATEGORIES = [
 	{ value: "CONCIERTO", label: "Concierto" },
 	{ value: "TEATRO", label: "Teatro" },
 	{ value: "EXPOSICION", label: "Exposición" },
-	{ value: "DEPORTES", label: "Deportes" },
+	{ value: "DEPORTE", label: "Deporte" },
 	{ value: "FESTIVAL", label: "Festival" },
 	{ value: "CINE", label: "Cine" },
 	{ value: "CONFERENCIA", label: "Conferencia" },
 	{ value: "TALLER", label: "Taller" },
-	{ value: "OTRA", label: "Otra" },
 ];
 
 export function EventFilters() {

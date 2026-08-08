@@ -44,15 +44,10 @@ const CATEGORY_STYLES: Record<
 		label: "Exposición",
 		gradient: "from-teal-600 to-emerald-800",
 	},
-	DEPORTES: {
+	DEPORTE: {
 		badge: "bg-deportes/15 text-deportes border-deportes/30",
-		label: "Deportes",
+		label: "Deporte",
 		gradient: "from-orange-500 to-amber-700",
-	},
-	OTRA: {
-		badge: "bg-muted text-muted-foreground border-border",
-		label: "Otra",
-		gradient: "from-gray-500 to-gray-700",
 	},
 	FESTIVAL: {
 		badge: "bg-festival/15 text-festival border-festival/30",
@@ -76,8 +71,14 @@ const CATEGORY_STYLES: Record<
 	},
 };
 
+const DEFAULT_STYLE = {
+	badge: "bg-muted text-muted-foreground border-border",
+	label: "",
+	gradient: "from-gray-500 to-gray-700",
+};
+
 export function categoryBadgeClass(category: EventCategory): string {
-	return CATEGORY_STYLES[category]?.badge ?? CATEGORY_STYLES.OTRA.badge;
+	return CATEGORY_STYLES[category]?.badge ?? DEFAULT_STYLE.badge;
 }
 
 export function categoryLabel(category: EventCategory): string {
@@ -85,5 +86,5 @@ export function categoryLabel(category: EventCategory): string {
 }
 
 export function categoryGradientClass(category: EventCategory): string {
-	return CATEGORY_STYLES[category]?.gradient ?? CATEGORY_STYLES.OTRA.gradient;
+	return CATEGORY_STYLES[category]?.gradient ?? DEFAULT_STYLE.gradient;
 }

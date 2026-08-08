@@ -54,6 +54,15 @@ export function MobileNav({ session }: MobileNavProps) {
 								>
 									Mis reservas
 								</Link>
+								{session.user.roles?.includes("ADMIN") && (
+									<Link
+										href="/admin"
+										className="px-3 py-2 text-sm font-medium rounded-lg hover:bg-muted transition-colors"
+										onClick={() => setOpen(false)}
+									>
+										Admin
+									</Link>
+								)}
 								<div className="my-2 h-px bg-border" />
 								<div className="px-3 py-2">
 									<p className="text-sm font-medium">{session.user.username ?? session.user.name}</p>
