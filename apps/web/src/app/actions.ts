@@ -198,3 +198,180 @@ export async function reserveTickets(
 
 	return { ok: true, reservationId: result.data.id };
 }
+
+const CATALOG_BASE_URL =
+	process.env.PASSLY_CATALOG_URL ?? "http://localhost:8090/api/catalog";
+
+export type AdminState = {
+	ok: boolean;
+	error?: string;
+	eventId?: string;
+};
+
+export async function createEvent(
+	_prev: AdminState,
+	formData: FormData,
+): Promise<AdminState> {
+	const session = await auth();
+	if (!session?.accessToken) {
+		return { ok: false, error: "Debes iniciar sesión" };
+	}
+	if (!session.user?.roles?.includes("ADMIN")) {
+		return { ok: false, error: "No tienes permisos de administrador" };
+	}
+
+	const name = formData.get("name") as string | null;
+	const description = formData.get("description") as string | null;
+	const category = formData.get("category") as string | null;
+	const venue = formData.get("venue") as string | null;
+	const startsAt = formData.get("startsAt") as string | null;
+	const price = formData.get("price") as string | null;
+	const capacity = formData.get("capacity") as string | null;
+
+	if (!name || !description || !category || !venue || !startsAt || price === null || capacity === null) {
+		return { ok: false, error: "Todos los campos son obligatorios" };
+	}
+
+	const priceNum = Number(price);
+	const capacityNum = Number(capacity);
+
+	if (isNaN(priceNum) || priceNum < 0) {
+		return { ok: false, error: "El precio debe ser un número positivo" };
+	}
+	if (isNaN(capacityNum) || capacityNum < 0) {
+		return { ok: false, error: "La capacidad debe ser un número positivo" };
+	}
+
+	const response = await fetch(`${CATALOG_BASE_URL}/events`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${session.accessToken}`,
+		},
+		body: JSON.stringify({
+			name,
+			description,
+			category,
+			venue,
+			startsAt,
+			price: priceNum,
+			capacity: capacityNum,
+		}),
+	});
+
+	if (!response.ok) {
+		if (response.status === 403) {
+			return { ok: false, error: "No tienes permisos para crear eventos" };
+		}
+		return { ok: false, error: `Error del servidor (${response.status})` };
+	}
+
+	const result = (await response.json()) as { id: string };
+	return { ok: true, eventId: result.id };
+}
+
+export async function updateEvent(
+	_prev: AdminState,
+	formData: FormData,
+): Promise<AdminState> {
+	const session = await auth();
+	if (!session?.accessToken) {
+		return { ok: false, error: "Debes iniciar sesión" };
+	}
+	if (!session.user?.roles?.includes("ADMIN")) {
+		return { ok: false, error: "No tienes permisos de administrador" };
+	}
+
+	const id = formData.get("id") as string | null;
+	const name = formData.get("name") as string | null;
+	const description = formData.get("description") as string | null;
+	const category = formData.get("category") as string | null;
+	const venue = formData.get("venue") as string | null;
+	const startsAt = formData.get("startsAt") as string | null;
+	const price = formData.get("price") as string | null;
+	const capacity = formData.get("capacity") as string | null;
+
+	if (!id) {
+		return { ok: false, error: "ID del evento requerido" };
+	}
+	if (!name || !description || !category || !venue || !startsAt || price === null || capacity === null) {
+		return { ok: false, error: "Todos los campos son obligatorios" };
+	}
+
+	const priceNum = Number(price);
+	const capacityNum = Number(capacity);
+
+	if (isNaN(priceNum) || priceNum < 0) {
+		return { ok: false, error: "El precio debe ser un número positivo" };
+	}
+	if (isNaN(capacityNum) || capacityNum < 0) {
+		return { ok: false, error: "La capacidad debe ser un número positivo" };
+	}
+
+	const response = await fetch(`${CATALOG_BASE_URL}/events/${id}`, {
+		method: "PUT",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${session.accessToken}`,
+		},
+		body: JSON.stringify({
+			name,
+			description,
+			category,
+			venue,
+			startsAt,
+			price: priceNum,
+			capacity: capacityNum,
+		}),
+	});
+
+	if (!response.ok) {
+		if (response.status === 403) {
+			return { ok: false, error: "No tienes permisos para editar eventos" };
+		}
+		if (response.status === 404) {
+			return { ok: false, error: "Evento no encontrado" };
+		}
+		return { ok: false, error: `Error del servidor (${response.status})` };
+	}
+
+	return { ok: true };
+}
+
+export async function deleteEvent(
+	_prev: AdminState,
+	formData: FormData,
+): Promise<AdminState> {
+	const session = await auth();
+	if (!session?.accessToken) {
+		return { ok: false, error: "Debes iniciar sesión" };
+	}
+	if (!session.user?.roles?.includes("ADMIN")) {
+		return { ok: false, error: "No tienes permisos de administrador" };
+	}
+
+	const id = formData.get("id") as string | null;
+
+	if (!id) {
+		return { ok: false, error: "ID del evento requerido" };
+	}
+
+	const response = await fetch(`${CATALOG_BASE_URL}/events/${id}`, {
+		method: "DELETE",
+		headers: {
+			Authorization: `Bearer ${session.accessToken}`,
+		},
+	});
+
+	if (!response.ok) {
+		if (response.status === 403) {
+			return { ok: false, error: "No tienes permisos para eliminar eventos" };
+		}
+		if (response.status === 404) {
+			return { ok: false, error: "Evento no encontrado" };
+		}
+		return { ok: false, error: `Error del servidor (${response.status})` };
+	}
+
+	return { ok: true };
+}
