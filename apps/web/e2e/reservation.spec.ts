@@ -105,6 +105,6 @@ test.describe("Verificación de email en Mailhog", () => {
 		expect(mailhogData.total).toBeGreaterThan(0);
 
 		const lastEmail = mailhogData.items[0];
-		expect(lastEmail.Content.Headers.Subject[0]).toContain("Passly");
+		expect(lastEmail.Content.Headers.Subject[0]).toContain("Tu ticket para");
 	});
 });
