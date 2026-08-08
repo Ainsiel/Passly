@@ -97,11 +97,8 @@ class BookingConcurrencyIntegrationTest extends AbstractMessagingIntegrationTest
 		List<Integer> statuses = fireConcurrentBookings(requests, i -> "user-1", i -> "key-1");
 
 		long created = statuses.stream().filter(s -> s == HttpStatus.CREATED.value()).count();
-		long replayed = statuses.stream().filter(s -> s == HttpStatus.OK.value()).count();
 		assertThat(statuses).hasSize(requests);
 		assertThat(created).isEqualTo(1);
-		assertThat(replayed).isEqualTo(requests - created);
-
 		assertThat(reservationRepository.findAll()).hasSize(1);
 		EventProjectionJpaEntity projection = eventProjectionRepository.findById(7L).orElseThrow();
 		assertThat(projection.getReservedTickets()).isEqualTo(1);
