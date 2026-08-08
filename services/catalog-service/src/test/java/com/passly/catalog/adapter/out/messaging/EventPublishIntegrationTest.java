@@ -60,9 +60,17 @@ class EventPublishIntegrationTest extends AbstractMessagingIntegrationTest {
 	private Queue testQueue;
 
 	@BeforeEach
-	void cleanOutboxAndBindQueue() {
+	void cleanOutboxDrainQueueAndBind() {
 		outboxRepository.deleteAllInBatch();
 		bindTestQueueToEventsExchange();
+		drainQueue();
+	}
+
+	private void drainQueue() {
+		org.springframework.amqp.core.Message m;
+		while ((m = rabbitTemplate.receive(testQueue.getName(), TimeUnit.SECONDS.toMillis(1))) != null) {
+			// discard stale messages from background poller
+		}
 	}
 
 	void bindTestQueueToEventsExchange() {
