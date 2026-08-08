@@ -18,8 +18,8 @@ class TicketEmailRendererTest {
 
 	@Test
 	void rendersTheEventAndEachTicketWithItsCodeAndQrLink() {
-		var message = new TicketReservedMessage(UUID.randomUUID(), "comprador@example.com", "Concierto de Verano",
-				LocalDateTime.of(2026, 8, 15, 20, 0), new BigDecimal("25.00"),
+		var message = new TicketReservedMessage(UUID.randomUUID(), "comprador@example.com", 1L, "Concierto de Verano",
+				LocalDateTime.of(2026, 8, 15, 20, 0), new BigDecimal("25.00"), 201,
 				List.of(new TicketReservedMessage.TicketData("T-12345", "https://passly.local/tickets/T-12345"),
 						new TicketReservedMessage.TicketData("T-12346", "https://passly.local/tickets/T-12346")));
 
@@ -35,8 +35,8 @@ class TicketEmailRendererTest {
 
 	@Test
 	void subjectUsesTheEventName() {
-		var message = new TicketReservedMessage(UUID.randomUUID(), "comprador@example.com", "Festival Nocturno",
-				LocalDateTime.of(2026, 9, 1, 22, 0), new BigDecimal("35.00"),
+		var message = new TicketReservedMessage(UUID.randomUUID(), "comprador@example.com", 2L, "Festival Nocturno",
+				LocalDateTime.of(2026, 9, 1, 22, 0), new BigDecimal("35.00"), 100,
 				List.of(new TicketReservedMessage.TicketData("T-1", "https://passly.local/tickets/T-1")));
 
 		assertThat(renderer.subject(message)).isEqualTo("Tu ticket para Festival Nocturno");
@@ -44,8 +44,8 @@ class TicketEmailRendererTest {
 
 	@Test
 	void escapesHtmlInTheEventName() {
-		var message = new TicketReservedMessage(UUID.randomUUID(), "comprador@example.com", "<script>",
-				LocalDateTime.of(2026, 9, 1, 22, 0), new BigDecimal("35.00"),
+		var message = new TicketReservedMessage(UUID.randomUUID(), "comprador@example.com", 3L, "<script>",
+				LocalDateTime.of(2026, 9, 1, 22, 0), new BigDecimal("35.00"), 50,
 				List.of(new TicketReservedMessage.TicketData("T-1", "https://passly.local/tickets/T-1")));
 
 		assertThat(renderer.render(message)).contains("&lt;script&gt;").doesNotContain("<script>");

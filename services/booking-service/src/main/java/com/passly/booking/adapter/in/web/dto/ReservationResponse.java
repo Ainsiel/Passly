@@ -10,9 +10,8 @@ import com.passly.booking.domain.ReservationStatus;
 import com.passly.booking.domain.Ticket;
 
 /**
- * Respuesta de una {@link Reservation}: la instantánea del Evento congelada en
- * la compra, el email destinatario de los Tickets y los Tickets emitidos
- * (código + payload QR).
+ * Response for a {@link Reservation}: the Event snapshot frozen at purchase time,
+ * the recipient email of the Tickets, and the issued Tickets (code + QR payload).
  */
 public record ReservationResponse(UUID id, Long eventId, String eventName, LocalDateTime startsAt,
 		BigDecimal price, ReservationStatus status, String email, LocalDateTime createdAt,

@@ -1,6 +1,8 @@
 "use server";
 
 import { signIn, signOut } from "@/auth";
+import { auth } from "@/auth";
+import { createReservation } from "@/lib/booking";
 import { AuthError } from "next-auth";
 
 export type AuthState = {
@@ -135,4 +137,64 @@ export async function register(
 
 export async function logout() {
 	await signOut({ redirectTo: "/" });
+}
+
+export type ReserveState = {
+	ok: boolean;
+	error?: string;
+	reservationId?: string;
+};
+
+export async function reserveTickets(
+	_prev: ReserveState,
+	formData: FormData,
+): Promise<ReserveState> {
+	const session = await auth();
+	if (!session?.accessToken) {
+		return { ok: false, error: "Debes iniciar sesión para reservar" };
+	}
+
+	const eventId = Number(formData.get("eventId"));
+	const quantity = Number(formData.get("quantity"));
+	const idempotencyKey = formData.get("idempotencyKey") as string;
+
+	let email = "";
+	try {
+		const payload = session.accessToken.split(".")[1];
+		const decoded = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+		email = decoded.email ?? "";
+	} catch {
+		// fallback: email will be empty
+	}
+
+	if (!eventId || !quantity || quantity < 1 || quantity > 4) {
+		return { ok: false, error: "Cantidad inválida (1-4 tickets)" };
+	}
+
+	if (!idempotencyKey) {
+		return { ok: false, error: "Falta clave de idempotencia" };
+	}
+
+	const result = await createReservation(
+		session.accessToken,
+		eventId,
+		quantity,
+		idempotencyKey,
+		email,
+	);
+
+	if (!result.ok) {
+		const messages: Record<number, string> = {
+			409: "Ya tienes una reserva para este evento o está agotado",
+			404: "Evento no encontrado",
+			400: "Solicitud inválida",
+			401: "Debes iniciar sesión",
+		};
+		return {
+			ok: false,
+			error: messages[result.status] ?? `Error del servidor (${result.status})`,
+		};
+	}
+
+	return { ok: true, reservationId: result.data.id };
 }

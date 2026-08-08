@@ -69,7 +69,7 @@ class ReservationTest {
 
 		assertThatThrownBy(() -> Reservation.book(UUID.randomUUID(), "user-1", pastEvent, tickets(1), EMAIL, NOW, 4))
 			.isInstanceOf(EventNotBookableException.class)
-			.hasMessageContaining("comenzado");
+			.hasMessageContaining("already started");
 	}
 
 	@Test

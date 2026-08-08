@@ -3,12 +3,12 @@ package com.passly.booking.domain;
 import java.time.LocalDateTime;
 
 /**
- * Se lanza cuando se intenta reservar un Evento que ya ha comenzado. Se
- * traduce a un error RFC 7807 de tipo 409 en el borde web.
+ * Thrown when attempting to reserve an Event that has already started. Mapped
+ * to an RFC 7807 409 error at the web border.
  */
 public class EventNotBookableException extends RuntimeException {
 
 	public EventNotBookableException(Long eventId, LocalDateTime startsAt) {
-		super("El evento " + eventId + " ya ha comenzado (" + startsAt + ") y no acepta reservas");
+		super("Event " + eventId + " has already started (" + startsAt + ") and does not accept reservations");
 	}
 }

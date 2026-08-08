@@ -21,14 +21,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Borde web del contexto Reservas. El Usuario sale del subject del JWT; la
- * idempotency key viaja en {@code X-Idempotency-Key} para que el cliente pueda
- * reintentar sin duplicar. Un reenvío de la misma key devuelve 200 con la misma
- * Reserva; una creación nueva devuelve 201.
+ * Web border for the Reservations context. User comes from the JWT subject;
+ * idempotency key travels in {@code X-Idempotency-Key} so the client can
+ * retry without duplicating. A replay of the same key returns 200 with the
+ * same Reservation; a new creation returns 201.
  */
 @Validated
 @RestController
-@RequestMapping("/reservas")
+@RequestMapping("/reservations")
 public class ReservationController {
 
 	private final ReservationService reservationService;

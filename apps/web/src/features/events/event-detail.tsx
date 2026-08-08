@@ -164,6 +164,7 @@ export async function EventDetail({ event }: EventDetailProps) {
 						<ReserveButton
 							isLoggedIn={!!await auth()}
 							isSoldOut={isSoldOut}
+							eventId={Number(event.id)}
 						/>
 
 						{/* Back Link */}

@@ -1,5 +1,6 @@
 package com.passly.booking.application.port;
 
+import com.passly.booking.domain.EventProjection;
 import com.passly.booking.domain.Reservation;
 
 /**
@@ -11,5 +12,5 @@ import com.passly.booking.domain.Reservation;
  */
 public interface TicketReservationPublisher {
 
-	void publish(Reservation reservation);
+	void publish(Reservation reservation, EventProjection event);
 }

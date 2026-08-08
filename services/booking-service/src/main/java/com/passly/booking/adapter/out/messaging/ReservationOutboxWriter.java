@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.passly.booking.adapter.out.persistence.ReservationOutboxJpaEntity;
 import com.passly.booking.adapter.out.persistence.ReservationOutboxJpaRepository;
 import com.passly.booking.application.port.TicketReservationPublisher;
+import com.passly.booking.domain.EventProjection;
 import com.passly.booking.domain.Reservation;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
@@ -28,10 +29,10 @@ public class ReservationOutboxWriter implements TicketReservationPublisher {
 	}
 
 	@Override
-	public void publish(Reservation reservation) {
+	public void publish(Reservation reservation, EventProjection event) {
 		ReservationOutboxJpaEntity entity = new ReservationOutboxJpaEntity();
 		entity.setReservationId(reservation.id());
-		entity.setPayload(objectMapper.writeValueAsString(TicketReservedMessage.from(reservation)));
+		entity.setPayload(objectMapper.writeValueAsString(TicketReservedMessage.from(reservation, event.reservedTickets())));
 		entity.setCreatedAt(LocalDateTime.now());
 		outboxRepository.save(entity);
 	}

@@ -24,6 +24,11 @@ spring:
         jwt:
           issuer-uri: ${PASSLY_ISSUER_URI:http://localhost:8080/realms/passly}
           jwk-set-uri: ${PASSLY_JWKS_URI:}
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:passly}
+    password: ${SPRING_RABBITMQ_PASSWORD:passly}
 
 server:
   port: 8081

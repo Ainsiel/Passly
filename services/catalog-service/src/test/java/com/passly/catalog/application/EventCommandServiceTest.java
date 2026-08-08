@@ -187,6 +187,16 @@ class EventCommandServiceTest {
 		public void deleteById(Long id) {
 			store.remove(id);
 		}
+
+		@Override
+		public void updateReservedTickets(Long eventId, int reservedTickets) {
+			Event existing = store.get(eventId);
+			if (existing != null) {
+				store.put(eventId, new Event(existing.id(), existing.name(), existing.description(),
+					existing.category(), existing.venue(), existing.startsAt(), existing.price(),
+					existing.capacity(), reservedTickets));
+			}
+		}
 	}
 
 	private static final class FakePublisher implements EventPublisher {

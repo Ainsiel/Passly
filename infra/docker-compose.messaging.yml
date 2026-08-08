@@ -40,6 +40,13 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  gateway:
+    environment:
+      PASSLY_BOOKING_URI: http://booking-service:8082
+    depends_on:
+      booking-service:
+        condition: service_healthy
+
   booking-service:
     build: ../services/booking-service
     container_name: passly-booking

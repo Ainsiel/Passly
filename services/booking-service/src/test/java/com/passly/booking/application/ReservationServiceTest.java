@@ -100,7 +100,7 @@ class ReservationServiceTest {
 
 		assertThatThrownBy(() -> service.book("user-1", "key-1", new BookReservationCommand(7L, 2, "usuario@passly.local")))
 			.isInstanceOf(SoldOutException.class)
-			.hasMessageContaining("agotado");
+			.hasMessageContaining("sold out");
 	}
 
 	@Test
@@ -110,7 +110,7 @@ class ReservationServiceTest {
 
 		assertThatThrownBy(() -> service.book("user-1", "key-1", new BookReservationCommand(7L, 2, "usuario@passly.local")))
 			.isInstanceOf(DuplicateReservationException.class)
-			.hasMessageContaining("reserva activa");
+			.hasMessageContaining("already has an active reservation");
 	}
 
 	@Test
@@ -119,7 +119,7 @@ class ReservationServiceTest {
 
 		assertThatThrownBy(() -> service.book("user-1", "key-1", new BookReservationCommand(7L, 2, "usuario@passly.local")))
 			.isInstanceOf(EventNotBookableException.class)
-			.hasMessageContaining("comenzado");
+			.hasMessageContaining("already started");
 	}
 
 	@Test
@@ -260,7 +260,7 @@ class ReservationServiceTest {
 		}
 
 		@Override
-		public void publish(Reservation reservation) {
+		public void publish(Reservation reservation, EventProjection event) {
 			published.add(reservation);
 		}
 	}

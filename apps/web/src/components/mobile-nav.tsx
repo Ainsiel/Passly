@@ -47,6 +47,13 @@ export function MobileNav({ session }: MobileNavProps) {
 						</Link>
 						{session?.user ? (
 							<>
+								<Link
+									href="/mis-reservas"
+									className="px-3 py-2 text-sm font-medium rounded-lg hover:bg-muted transition-colors"
+									onClick={() => setOpen(false)}
+								>
+									Mis reservas
+								</Link>
 								<div className="my-2 h-px bg-border" />
 								<div className="px-3 py-2">
 									<p className="text-sm font-medium">{session.user.username ?? session.user.name}</p>
