@@ -60,6 +60,11 @@ class EventPublishIntegrationTest extends AbstractMessagingIntegrationTest {
 	private Queue testQueue;
 
 	@BeforeEach
+	void cleanOutboxAndBindQueue() {
+		outboxRepository.deleteAllInBatch();
+		bindTestQueueToEventsExchange();
+	}
+
 	void bindTestQueueToEventsExchange() {
 		testQueue = new Queue("test." + System.nanoTime(), true, false, false);
 		amqpAdmin.declareQueue(testQueue);

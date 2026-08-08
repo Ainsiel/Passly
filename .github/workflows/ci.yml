@@ -33,6 +33,10 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           cache: maven
 
+      - name: Fix mvnw permissions
+        working-directory: services/${{ matrix.service }}
+        run: chmod +x ./mvnw
+
       - name: Build and test
         working-directory: services/${{ matrix.service }}
         run: ./mvnw -B verify
