@@ -86,7 +86,7 @@ test.describe("Verificación de email en Mailhog", () => {
 		await page.getByRole("button", { name: /Iniciar sesión/ }).click();
 		await page.waitForURL("http://localhost:3000/", { timeout: 30_000 });
 
-		await page.goto("/eventos/26");
+		await page.goto("/eventos/30");
 
 		const reserveButton = page.getByRole("button", { name: /Reservar entradas/ });
 		await expect(reserveButton).toBeVisible();
@@ -96,15 +96,24 @@ test.describe("Verificación de email en Mailhog", () => {
 
 		await page.waitForURL(/\/reservas\/.*\/tickets/, { timeout: 15_000 });
 
-		await page.waitForTimeout(3000);
-
-		const mailhogResponse = await page.request.get(
-			"http://localhost:8025/api/v2/messages",
-		);
-		const mailhogData = await mailhogResponse.json();
-		expect(mailhogData.total).toBeGreaterThan(0);
-
-		const lastEmail = mailhogData.items[0];
-		expect(lastEmail.Content.Headers.Subject[0]).toContain("Tu ticket para");
+		let emailFound = false;
+		for (let i = 0; i < 10; i++) {
+			const mailhogResponse = await page.request.get(
+				"http://localhost:8025/api/v2/messages",
+			);
+			const mailhogData = await mailhogResponse.json();
+			if (mailhogData.total > 0) {
+				const matchingEmail = mailhogData.items.find(
+					(item: any) =>
+						item.Content?.Headers?.Subject?.[0]?.includes("Taller de Cocina"),
+				);
+				if (matchingEmail) {
+					emailFound = true;
+					break;
+				}
+			}
+			await page.waitForTimeout(2000);
+		}
+		expect(emailFound).toBe(true);
 	});
 });
