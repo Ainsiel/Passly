@@ -8,17 +8,21 @@ scrape_configs:
       - targets: ["localhost:9090"]
 
   - job_name: catalog-service
+    metrics_path: /actuator/prometheus
     static_configs:
       - targets: ["catalog-service:8081"]
 
   - job_name: booking-service
+    metrics_path: /actuator/prometheus
     static_configs:
       - targets: ["booking-service:8082"]
 
   - job_name: notification-service
+    metrics_path: /actuator/prometheus
     static_configs:
       - targets: ["notification-service:8083"]
 
   - job_name: gateway
+    metrics_path: /actuator/prometheus
     static_configs:
       - targets: ["gateway:8090"]
