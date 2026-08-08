@@ -53,7 +53,7 @@ test.describe("Reserva de tickets (ticket #10)", () => {
 		await page.getByRole("button", { name: /Iniciar sesión/ }).click();
 		await page.waitForURL("http://localhost:3000/", { timeout: 30_000 });
 
-		await page.goto("/eventos/5");
+		await page.goto("/eventos/8");
 
 		const reserveButton = page.getByRole("button", { name: /Reservar entradas/ });
 		await expect(reserveButton).toBeVisible();
@@ -86,7 +86,7 @@ test.describe("Verificación de email en Mailhog", () => {
 		await page.getByRole("button", { name: /Iniciar sesión/ }).click();
 		await page.waitForURL("http://localhost:3000/", { timeout: 30_000 });
 
-		await page.goto("/eventos/10");
+		await page.goto("/eventos/26");
 
 		const reserveButton = page.getByRole("button", { name: /Reservar entradas/ });
 		await expect(reserveButton).toBeVisible();
