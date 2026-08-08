@@ -91,5 +91,15 @@ class EventQueryServiceTest {
 		public void deleteById(Long id) {
 			byId.remove(id);
 		}
+
+		@Override
+		public void updateReservedTickets(Long eventId, int reservedTickets) {
+			Event existing = byId.get(eventId);
+			if (existing != null) {
+				byId.put(eventId, new Event(existing.id(), existing.name(), existing.description(),
+					existing.category(), existing.venue(), existing.startsAt(), existing.price(),
+					existing.capacity(), reservedTickets));
+			}
+		}
 	}
 }

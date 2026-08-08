@@ -13,19 +13,20 @@ import com.passly.booking.domain.Reservation;
  * compra, el email del destinatario y los Tickets emitidos (código + payload
  * QR). Es el contrato del wire que notification refleja en su propia copia.
  */
-public record TicketReservedMessage(UUID reservationId, String email, String eventName, LocalDateTime startsAt,
-		BigDecimal price, List<TicketData> tickets) {
+public record TicketReservedMessage(UUID reservationId, String email, Long eventId, String eventName,
+		LocalDateTime startsAt, BigDecimal price, int reservedTickets, List<TicketData> tickets) {
 
 	public TicketReservedMessage {
-		if (reservationId == null || email == null || email.isBlank() || eventName == null || startsAt == null
-				|| price == null || tickets == null || tickets.isEmpty()) {
-			throw new IllegalArgumentException("reservationId, email, eventName, startsAt, price y tickets son obligatorios");
+		if (reservationId == null || email == null || email.isBlank() || eventId == null || eventName == null
+				|| startsAt == null || price == null || tickets == null || tickets.isEmpty()) {
+			throw new IllegalArgumentException(
+				"reservationId, email, eventId, eventName, startsAt, price y tickets son obligatorios");
 		}
 	}
 
-	public static TicketReservedMessage from(Reservation reservation) {
-		return new TicketReservedMessage(reservation.id(), reservation.email(), reservation.eventName(),
-			reservation.startsAt(), reservation.price(),
+	public static TicketReservedMessage from(Reservation reservation, int reservedTickets) {
+		return new TicketReservedMessage(reservation.id(), reservation.email(), reservation.eventId(),
+			reservation.eventName(), reservation.startsAt(), reservation.price(), reservedTickets,
 			reservation.tickets().stream().map(ticket -> new TicketData(ticket.code(), ticket.qr())).toList());
 	}
 

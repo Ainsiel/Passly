@@ -20,4 +20,6 @@ public interface EventRepository {
 	Event save(Event event);
 
 	void deleteById(Long id);
+
+	void updateReservedTickets(Long eventId, int reservedTickets);
 }

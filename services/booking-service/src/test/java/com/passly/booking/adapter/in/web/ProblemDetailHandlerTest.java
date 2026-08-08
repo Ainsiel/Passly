@@ -17,7 +17,7 @@ class ProblemDetailHandlerTest {
 			.handleOptimisticLockingConflict(new ObjectOptimisticLockingFailureException("EventProjection", 1L));
 
 		assertThat(problem.getStatus()).isEqualTo(HttpStatus.CONFLICT.value());
-		assertThat(problem.getTitle()).isEqualTo("Conflicto de concurrencia");
+		assertThat(problem.getTitle()).isEqualTo("Concurrency conflict");
 		assertThat(problem.getType().toString()).isEqualTo("urn:problem-type:concurrency-conflict");
 	}
 }

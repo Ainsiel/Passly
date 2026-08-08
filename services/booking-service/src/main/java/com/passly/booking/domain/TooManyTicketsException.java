@@ -1,13 +1,13 @@
 package com.passly.booking.domain;
 
 /**
- * Se lanza cuando una Reserva pide más Tickets que el máximo permitido por
- * Reserva (límite configurable, default 4). Se traduce a un error RFC 7807 de
- * tipo 400 en el borde web.
+ * Thrown when a Reservation requests more Tickets than the maximum allowed per
+ * Reservation (configurable limit, default 4). Mapped to an RFC 7807 400 error
+ * at the web border.
  */
 public class TooManyTicketsException extends RuntimeException {
 
 	public TooManyTicketsException(int maxTickets) {
-		super("No se pueden reservar más de " + maxTickets + " tickets por reserva");
+		super("Cannot reserve more than " + maxTickets + " tickets per reservation");
 	}
 }

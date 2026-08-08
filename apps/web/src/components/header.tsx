@@ -10,7 +10,7 @@ import {
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { TicketIcon, LogOutIcon, UserIcon } from "lucide-react";
+import { TicketIcon, LogOutIcon, UserIcon, CalendarCheckIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MobileNav } from "@/components/mobile-nav";
 
@@ -46,6 +46,14 @@ export async function Header() {
 						>
 							Eventos
 						</Link>
+						{session?.user && (
+							<Link
+								href="/mis-reservas"
+								className="px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+							>
+								Mis reservas
+							</Link>
+						)}
 					</nav>
 				</div>
 
@@ -78,6 +86,13 @@ export async function Header() {
 										<p className="text-xs text-muted-foreground">Cuenta personal</p>
 									</div>
 								</div>
+								<DropdownMenuSeparator />
+								<DropdownMenuItem>
+									<Link href="/mis-reservas" className="flex items-center gap-2 w-full">
+										<CalendarCheckIcon className="h-4 w-4" />
+										Mis reservas
+									</Link>
+								</DropdownMenuItem>
 								<DropdownMenuSeparator />
 								<DropdownMenuItem>
 									<form action={logout} className="w-full">

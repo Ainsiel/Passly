@@ -23,9 +23,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
- * Traduce las excepciones del contexto Reservas a errores RFC 7807 (Problem
- * Details, content-type {@code application/problem+json}), mismo estilo que el
- * catálogo.
+ * Translates Reservations context exceptions to RFC 7807 errors (Problem
+ * Details, content-type {@code application/problem+json}), same style as the
+ * catalog.
  */
 @RestControllerAdvice
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -43,7 +43,7 @@ public class ProblemDetailHandler {
 	@ExceptionHandler(EventNotFoundException.class)
 	ProblemDetail handleEventNotFound(EventNotFoundException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-		problem.setTitle("Evento no encontrado");
+		problem.setTitle("Event not found");
 		problem.setType(EVENT_NOT_FOUND);
 		return problem;
 	}
@@ -51,7 +51,7 @@ public class ProblemDetailHandler {
 	@ExceptionHandler(DuplicateReservationException.class)
 	ProblemDetail handleDuplicateReservation(DuplicateReservationException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-		problem.setTitle("Reserva duplicada");
+		problem.setTitle("Duplicate reservation");
 		problem.setType(DUPLICATE_RESERVATION);
 		return problem;
 	}
@@ -59,7 +59,7 @@ public class ProblemDetailHandler {
 	@ExceptionHandler(SoldOutException.class)
 	ProblemDetail handleSoldOut(SoldOutException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-		problem.setTitle("Sin disponibilidad");
+		problem.setTitle("Sold out");
 		problem.setType(SOLD_OUT);
 		return problem;
 	}
@@ -67,7 +67,7 @@ public class ProblemDetailHandler {
 	@ExceptionHandler(EventNotBookableException.class)
 	ProblemDetail handleEventNotBookable(EventNotBookableException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
-		problem.setTitle("Evento no reservable");
+		problem.setTitle("Event not bookable");
 		problem.setType(EVENT_NOT_BOOKABLE);
 		return problem;
 	}
@@ -75,23 +75,23 @@ public class ProblemDetailHandler {
 	@ExceptionHandler(TooManyTicketsException.class)
 	ProblemDetail handleTooManyTickets(TooManyTicketsException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-		problem.setTitle("Demasiados tickets");
+		problem.setTitle("Too many tickets");
 		problem.setType(TOO_MANY_TICKETS);
 		return problem;
 	}
 
 	/**
-	 * Conflicto de optimistic locking que agotó los reintentos del caso de uso:
-	 * dos Reservas concurrentes compitieron por los últimos Tickets y esta
-	 * perdió. Aunque el reintento interno normalmente lo resuelve con 409
-	 * sold-out, este es el cortafuegos que garantiza que nunca se devuelva un
-	 * 500: los perdedores siempre reciben un 4xx (AC del ticket #7).
+	 * Optimistic locking conflict that exhausted use-case retries: two concurrent
+	 * Reservations competed for the last Tickets and this one lost. Although the
+	 * internal retry normally resolves it with 409 sold-out, this is the safety
+	 * net that guarantees a 500 is never returned: losers always get a 4xx (AC
+	 * of ticket #7).
 	 */
 	@ExceptionHandler(ObjectOptimisticLockingFailureException.class)
 	ProblemDetail handleOptimisticLockingConflict(ObjectOptimisticLockingFailureException ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
-			"Conflicto de concurrencia: reintenta la reserva");
-		problem.setTitle("Conflicto de concurrencia");
+			"Concurrency conflict: retry the reservation");
+		problem.setTitle("Concurrency conflict");
 		problem.setType(CONCURRENCY_CONFLICT);
 		return problem;
 	}
@@ -102,8 +102,8 @@ public class ProblemDetailHandler {
 			.map(ProblemDetailHandler::toError)
 			.toList();
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST,
-			errors.size() + " error(es) de validación");
-		problem.setTitle("Solicitud inválida");
+			errors.size() + " validation error(s)");
+		problem.setTitle("Invalid request");
 		problem.setType(VALIDATION_ERROR);
 		problem.setProperty("errors", errors);
 		return problem;
@@ -113,7 +113,7 @@ public class ProblemDetailHandler {
 			HttpMessageNotReadableException.class })
 	ProblemDetail handleBadRequest(Exception ex) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-		problem.setTitle("Solicitud inválida");
+		problem.setTitle("Invalid request");
 		problem.setType(BAD_REQUEST);
 		return problem;
 	}

@@ -63,7 +63,7 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 
 	@Test
 	void bookingDecrementsAvailabilityAndReturnsTicketsWithCodeAndQr() throws Exception {
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -83,7 +83,7 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 
 	@Test
 	void replayingTheSameIdempotencyKeyReturnsTheSameReservation() throws Exception {
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -91,7 +91,7 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.tickets", hasSize(1)));
 
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -99,7 +99,7 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.tickets", hasSize(1)));
 
-		mockMvc.perform(get("/reservas").header("Authorization", "Bearer user-1"))
+		mockMvc.perform(get("/reservations").header("Authorization", "Bearer user-1"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$", hasSize(1)));
 
@@ -109,14 +109,14 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 
 	@Test
 	void aUserCannotHoldTwoActiveReservationsForTheSameEvent() throws Exception {
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(EVENT_BODY.formatted(1)))
 			.andExpect(status().isCreated());
 
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-2")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -132,7 +132,7 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 		transactionTemplate.executeWithoutResult(status -> eventProjectionRepository.upsert(8L, "Agotado",
 			LocalDateTime.of(2026, 12, 31, 21, 0), new BigDecimal("30.00"), 100, 100));
 
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -140,12 +140,12 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 			.andExpect(status().isConflict())
 			.andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
 			.andExpect(jsonPath("$.type").value("urn:problem-type:sold-out"))
-			.andExpect(jsonPath("$.detail").value(containsString("agotado")));
+			.andExpect(jsonPath("$.detail").value(containsString("sold out")));
 	}
 
 	@Test
 	void bookingMoreThanTheMaxTicketsReturns400() throws Exception {
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -158,7 +158,7 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 
 	@Test
 	void bookingANonexistentEventReturns404() throws Exception {
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -166,7 +166,7 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 			.andExpect(status().isNotFound())
 			.andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
 			.andExpect(jsonPath("$.type").value("urn:problem-type:event-not-found"))
-			.andExpect(jsonPath("$.detail").value("No existe un evento con id 999"));
+			.andExpect(jsonPath("$.detail").value("Event not found with id 999"));
 	}
 
 	@Test
@@ -174,7 +174,7 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 		transactionTemplate.executeWithoutResult(status -> eventProjectionRepository.upsert(9L, "Ya empezó",
 			LocalDateTime.of(2020, 1, 1, 21, 0), new BigDecimal("30.00"), 100, 0));
 
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -186,7 +186,7 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 
 	@Test
 	void anInvalidQuantityReturns400() throws Exception {
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -199,7 +199,7 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 
 	@Test
 	void aMissingIdempotencyKeyReturns400() throws Exception {
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer user-1")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(EVENT_BODY.formatted(1)))
@@ -208,34 +208,34 @@ class BookingApiIntegrationTest extends AbstractMessagingIntegrationTest {
 
 	@Test
 	void myReservationsReturnsOnlyTheUsersReservations() throws Exception {
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(EVENT_BODY.formatted(1)))
 			.andExpect(status().isCreated());
 
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer user-2")
 				.header("X-Idempotency-Key", "key-2")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(EVENT_BODY.formatted(1)))
 			.andExpect(status().isCreated());
 
-		mockMvc.perform(get("/reservas").header("Authorization", "Bearer user-1"))
+		mockMvc.perform(get("/reservations").header("Authorization", "Bearer user-1"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$", hasSize(1)))
 			.andExpect(jsonPath("$[0].tickets[0].code").isNotEmpty())
 			.andExpect(jsonPath("$[0].tickets[0].qr").isNotEmpty());
 
-		mockMvc.perform(get("/reservas").header("Authorization", "Bearer user-2"))
+		mockMvc.perform(get("/reservations").header("Authorization", "Bearer user-2"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$", hasSize(1)));
 	}
 
 	@Test
 	void anonymousRequestIsRejectedWith401() throws Exception {
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(EVENT_BODY.formatted(1)))

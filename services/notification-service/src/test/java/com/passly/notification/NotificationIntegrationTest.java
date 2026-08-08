@@ -49,8 +49,8 @@ class NotificationIntegrationTest extends AbstractMessagingIntegrationTest {
 
 	@Test
 	void aValidReservationDeliversAnEmailWithTheTicketCodeAndQr() {
-		var message = new TicketReservedMessage(UUID.randomUUID(), "comprador@example.com", "Concierto de Verano",
-				LocalDateTime.of(2026, 8, 15, 20, 0), new BigDecimal("25.00"),
+		var message = new TicketReservedMessage(UUID.randomUUID(), "comprador@example.com", 1L, "Concierto de Verano",
+				LocalDateTime.of(2026, 8, 15, 20, 0), new BigDecimal("25.00"), 201,
 				List.of(new TicketReservedMessage.TicketData("T-12345", "https://passly.local/tickets/T-12345")));
 
 		rabbitTemplate.convertAndSend(RabbitTopology.BOOKINGS_EXCHANGE,

@@ -8,6 +8,7 @@ import com.passly.catalog.domain.EventFilter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Adaptador de salida que implementa el puerto {@link EventRepository} sobre
@@ -41,5 +42,11 @@ public class EventPersistenceAdapter implements EventRepository {
 	@Override
 	public void deleteById(Long id) {
 		eventJpaRepository.deleteById(id);
+	}
+
+	@Override
+	@Transactional
+	public void updateReservedTickets(Long eventId, int reservedTickets) {
+		eventJpaRepository.updateReservedTickets(eventId, reservedTickets);
 	}
 }

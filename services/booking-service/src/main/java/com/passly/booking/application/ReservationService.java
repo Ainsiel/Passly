@@ -21,12 +21,12 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Casos de uso del contexto Reservas. {@code book} reserva Tickets con
- * optimistic locking (ADR-0003): dentro de una transacción REQUIRES_NEW
- * (invocada a través del proxy self-inyectado) se lee la proyección, se valida
- * la Disponibilidad y se descuenta atómicamente; dos Reservas concurrentes por
- * los últimos Tickets: una gana y la otra recibe conflicto. La idempotency key
- * hace que un reenvío (doble clic, retry) devuelva la misma Reserva.
+ * Use cases for the Reservations context. {@code book} reserves Tickets with
+ * optimistic locking (ADR-0003): within a REQUIRES_NEW transaction (invoked
+ * through the self-injected proxy) it reads the projection, validates
+ * Availability, and atomically decrements; two concurrent Reservations for the
+ * last Tickets: one wins and the other gets a conflict. The idempotency key
+ * ensures a replay (double-click, retry) returns the same Reservation.
  */
 @Service
 public class ReservationService {
@@ -101,7 +101,7 @@ public class ReservationService {
 		Reservation reservation = Reservation.book(UUID.randomUUID(), userId, reserved, tickets, command.email(), now,
 			properties.getMaxTicketsPerReservation());
 		reservationRepository.save(reservation, idempotencyKey);
-		reservationPublisher.publish(reservation);
+		reservationPublisher.publish(reservation, reserved);
 		return BookingResult.created(reservation);
 	}
 

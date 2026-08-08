@@ -65,7 +65,7 @@ class ResourceServerIntegrationTest extends AbstractMessagingIntegrationTest {
 
 	@Test
 	void unauthenticatedRequestToProtectedEndpointIsRejectedWith401() throws Exception {
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content("{\"eventId\":7,\"quantity\":1,\"email\":\"usuario@passly.local\"}"))
@@ -81,7 +81,7 @@ class ResourceServerIntegrationTest extends AbstractMessagingIntegrationTest {
 	void anAuthenticatedUserCanBookWithARealKeycloakToken() throws Exception {
 		String token = obtainAccessToken("user", "user123");
 
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer " + token)
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -95,21 +95,21 @@ class ResourceServerIntegrationTest extends AbstractMessagingIntegrationTest {
 	void bookingWithARepeatedIdempotencyKeyIsNotDuplicated() throws Exception {
 		String token = obtainAccessToken("user", "user123");
 
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer " + token)
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content("{\"eventId\":7,\"quantity\":1,\"email\":\"usuario@passly.local\"}"))
 			.andExpect(status().isCreated());
 
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer " + token)
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content("{\"eventId\":7,\"quantity\":1,\"email\":\"usuario@passly.local\"}"))
 			.andExpect(status().isOk());
 
-		mockMvc.perform(get("/reservas").header("Authorization", "Bearer " + token))
+		mockMvc.perform(get("/reservations").header("Authorization", "Bearer " + token))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$", org.hamcrest.Matchers.hasSize(1)));
 	}
@@ -123,7 +123,7 @@ class ResourceServerIntegrationTest extends AbstractMessagingIntegrationTest {
 			.build();
 		HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
 		if (response.statusCode() != 200) {
-			throw new IllegalStateException("No se pudo obtener el token: HTTP " + response.statusCode() + " " + response.body());
+			throw new IllegalStateException("Could not obtain token: HTTP " + response.statusCode() + " " + response.body());
 		}
 		JsonNode body = OBJECT_MAPPER.readTree(response.body());
 		return body.get("access_token").asText();

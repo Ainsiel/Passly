@@ -104,7 +104,7 @@ class ReservationOutboxIntegrationTest extends AbstractMessagingIntegrationTest 
 	@Test
 	void aReplayDoesNotWriteASecondOutboxRow() throws Exception {
 		book("user-1", "key-1", 1);
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -119,7 +119,7 @@ class ReservationOutboxIntegrationTest extends AbstractMessagingIntegrationTest 
 		transactionTemplate.executeWithoutResult(status -> eventProjectionRepository.upsert(8L, "Agotado",
 			LocalDateTime.of(2026, 12, 31, 21, 0), new BigDecimal("30.00"), 100, 100));
 
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer user-1")
 				.header("X-Idempotency-Key", "key-1")
 				.contentType(MediaType.APPLICATION_JSON)
@@ -204,7 +204,7 @@ class ReservationOutboxIntegrationTest extends AbstractMessagingIntegrationTest 
 	}
 
 	private void book(String user, String idempotencyKey, int quantity) throws Exception {
-		mockMvc.perform(post("/reservas")
+		mockMvc.perform(post("/reservations")
 				.header("Authorization", "Bearer " + user)
 				.header("X-Idempotency-Key", idempotencyKey)
 				.contentType(MediaType.APPLICATION_JSON)

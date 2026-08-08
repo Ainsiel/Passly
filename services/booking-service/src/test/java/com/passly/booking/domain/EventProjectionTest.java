@@ -82,7 +82,7 @@ class EventProjectionTest {
 
 		assertThatThrownBy(() -> projection.reserve(3))
 			.isInstanceOf(SoldOutException.class)
-			.hasMessageContaining("agotado");
+			.hasMessageContaining("sold out");
 	}
 
 	private static EventProjection projection(int capacity, int reservedTickets) {

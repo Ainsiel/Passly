@@ -14,8 +14,8 @@ import java.util.UUID;
  * de forma determinista en la deserialización y, tras agotar el reintento,
  * termine en la dead-letter queue (AC3).
  */
-public record TicketReservedMessage(UUID reservationId, String email, String eventName, LocalDateTime startsAt,
-		BigDecimal price, List<TicketData> tickets) {
+public record TicketReservedMessage(UUID reservationId, String email, Long eventId, String eventName,
+		LocalDateTime startsAt, BigDecimal price, Integer reservedTickets, List<TicketData> tickets) {
 
 	public TicketReservedMessage {
 		if (reservationId == null || email == null || email.isBlank() || eventName == null || startsAt == null

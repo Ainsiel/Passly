@@ -7,9 +7,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * Cuerpo del POST /reservas. {@code email} es el destinatario al que se
- * entregan los Tickets (ticket #8). {@code maxTicketsPerReservation} no se
- * valida aquí para no duplicar la config: el tope lo aplica el dominio
+ * Body of POST /reservations. {@code email} is the recipient to whom Tickets
+ * are delivered (ticket #8). {@code maxTicketsPerReservation} is not validated
+ * here to avoid duplicating config: the cap is enforced by the domain
  * (TooManyTicketsException -> 400).
  */
 public record BookReservationRequest(@NotNull Long eventId, @NotNull @Min(1) Integer quantity,
