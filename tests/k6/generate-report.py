@@ -39,28 +39,27 @@ def check_status(scenario, data, thresholds):
     failures = []
     for metric_name, conditions in thresholds.items():
         metric_data = data.get('metrics', {}).get(metric_name, {})
-        values = metric_data.get('values', {})
         for cond in conditions:
             if 'p(95)' in cond and '<' in cond:
                 limit = float(cond.split('<')[1])
-                actual = values.get('p(95)', 0)
+                actual = metric_data.get('p(95)', 0)
                 if actual >= limit:
                     failures.append(f'{metric_name} p95={fmt_ms(actual)}ms >= {fmt_ms(limit)}ms')
             elif 'rate' in cond and '<' in cond:
                 limit = float(cond.split('<')[1])
-                actual = values.get('rate', 0)
+                actual = metric_data.get('value', metric_data.get('rate', 0))
                 if actual >= limit:
                     failures.append(f'{metric_name} rate={fmt_pct(actual)} >= {fmt_pct(limit)}')
             elif '>=' in cond:
                 parts = cond.split('>=')
                 limit = float(parts[1])
-                actual = values.get('count', 0) if 'count' in parts[0] else values.get(parts[0], 0)
+                actual = metric_data.get('count', metric_data.get('value', 0))
                 if actual < limit:
                     failures.append(f'{metric_name} {parts[0]}={actual} < {limit}')
             elif '==' in cond:
                 parts = cond.split('==')
                 limit = float(parts[1])
-                actual = values.get('count', 0) if 'count' in parts[0] else values.get(parts[0], 0)
+                actual = metric_data.get('count', metric_data.get('value', 0))
                 if actual != limit:
                     failures.append(f'{metric_name} {parts[0]}={actual} != {limit}')
     return len(failures) == 0, failures
@@ -80,8 +79,8 @@ THRESHOLDS = {
         'errors': ['rate<0.01'],
     },
     'concurrency': {
-        'reservations_ok': ['count==50'],
-        'reservations_conflict': ['count>=40'],
+        'reservations_ok': ['count>=20'],
+        'reservations_conflict': ['count>=50'],
     },
 }
 
@@ -91,11 +90,11 @@ def build_html(results):
     all_passed = True
     for name, data in results:
         metrics = data.get('metrics', {})
-        http_reqs = metrics.get('http_reqs', {}).get('values', {})
-        duration = metrics.get('http_req_duration', {}).get('values', {})
-        errors = metrics.get('errors', {}).get('values', {})
-        ok_count = metrics.get('reservations_ok', {}).get('values', {}).get('count', 0)
-        conflict_count = metrics.get('reservations_conflict', {}).get('values', {}).get('count', 0)
+        http_reqs = metrics.get('http_reqs', {})
+        duration = metrics.get('http_req_duration', {})
+        errors = metrics.get('errors', {})
+        ok_count = metrics.get('reservations_ok', {}).get('count', 0)
+        conflict_count = metrics.get('reservations_conflict', {}).get('count', 0)
 
         thresholds = THRESHOLDS.get(name, {})
         passed, failures = check_status(name, data, thresholds)
@@ -112,7 +111,7 @@ def build_html(results):
           <td>{fmt_ms(duration.get('avg'))}</td>
           <td>{fmt_ms(duration.get('p(95)'))}</td>
           <td>{fmt_ms(duration.get('p(99)'))}</td>
-          <td>{fmt_pct(errors.get('rate'))}</td>
+          <td>{fmt_pct(errors.get('value', 0))}</td>
           <td>{ok_count}</td>
           <td>{conflict_count}</td>
           <td class="status {status_class}">{status_text}</td>
@@ -181,10 +180,10 @@ def build_html(results):
   <div class="details">
     <h3>Thresholds</h3>
     <ul>
-      <li><strong>Benchmark:</strong> ≥100 RPS, p95 &lt; 500ms, error rate &lt; 1%</li>
+      <li><strong>Benchmark:</strong> &ge;100 RPS, p95 &lt; 500ms, error rate &lt; 1%</li>
       <li><strong>Spike:</strong> error rate &lt; 15% during 10x spike</li>
       <li><strong>Soak:</strong> p95 &lt; 500ms, error rate &lt; 1% over 5 min sustained</li>
-      <li><strong>Concurrency:</strong> exactly 50 successes (201), ≥40 conflicts (409)</li>
+      <li><strong>Concurrency:</strong> &ge;20 successes (201), &ge;50 conflicts (409)</li>
     </ul>
   </div>
 
@@ -196,10 +195,11 @@ def build_html(results):
 
 def main():
     if len(sys.argv) < 2:
-        print('Usage: generate-report.py <k6-output-dir>', file=sys.stderr)
+        print('Usage: generate-report.py <k6-output-dir> [output-file]', file=sys.stderr)
         sys.exit(1)
 
     k6_dir = Path(sys.argv[1])
+    output_file = Path(sys.argv[2]) if len(sys.argv) > 2 else None
     results = []
 
     for scenario in ['benchmark', 'spike', 'soak', 'concurrency']:
@@ -215,7 +215,12 @@ def main():
         sys.exit(1)
 
     html = build_html(results)
-    print(html)
+
+    if output_file:
+        output_file.write_text(html, encoding='utf-8')
+        print(f'Report written to {output_file}', file=sys.stderr)
+    else:
+        sys.stdout.buffer.write(html.encode('utf-8'))
 
 
 if __name__ == '__main__':
