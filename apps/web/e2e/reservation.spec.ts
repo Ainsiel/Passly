@@ -1,5 +1,23 @@
 import { expect, test } from "@playwright/test";
 
+/**
+ * Wait for either navigation to the tickets page or an error message on the
+ * current page. Throws with the actual error text if the reservation fails.
+ */
+async function waitForReservationResult(page: import("@playwright/test").Page) {
+	const errorEl = page.locator(".text-destructive");
+
+	await Promise.race([
+		page.waitForURL(/\/reservas\/.*\/tickets/, { timeout: 15_000 }),
+		errorEl.waitFor({ state: "visible", timeout: 15_000 }),
+	]);
+
+	if (await errorEl.isVisible()) {
+		const msg = await errorEl.textContent();
+		throw new Error(`Server action returned error: "${msg}"`);
+	}
+}
+
 test.describe("Reserva de tickets (ticket #10)", () => {
 	test("reserva completa: login, evento, reservar, ver tickets", async ({
 		page,
@@ -21,7 +39,7 @@ test.describe("Reserva de tickets (ticket #10)", () => {
 		await page.getByLabel("Cantidad").selectOption("1");
 		await reserveButton.click();
 
-		await page.waitForURL(/\/reservas\/.*\/tickets/, { timeout: 15_000 });
+		await waitForReservationResult(page);
 		await expect(page.getByText("Tus tickets")).toBeVisible();
 		await expect(page.getByText("Código").first()).toBeVisible();
 		await expect(page.locator("img[alt='QR Code']").first()).toBeVisible();
@@ -61,7 +79,7 @@ test.describe("Reserva de tickets (ticket #10)", () => {
 		await page.getByLabel("Cantidad").selectOption("1");
 		await reserveButton.click();
 
-		await page.waitForURL(/\/reservas\/.*\/tickets/, { timeout: 15_000 });
+		await waitForReservationResult(page);
 		await expect(page.getByText("Tus tickets")).toBeVisible();
 	});
 
@@ -94,7 +112,7 @@ test.describe("Verificación de email en Mailhog", () => {
 		await page.getByLabel("Cantidad").selectOption("1");
 		await reserveButton.click();
 
-		await page.waitForURL(/\/reservas\/.*\/tickets/, { timeout: 15_000 });
+		await waitForReservationResult(page);
 
 		let emailFound = false;
 		for (let i = 0; i < 10; i++) {
