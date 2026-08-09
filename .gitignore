@@ -36,7 +36,6 @@ logs/
 coverage/
 playwright-report/
 test-results/
-artifacts/
 
 # Docker
 infra/data/

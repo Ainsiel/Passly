@@ -115,7 +115,7 @@ assert "Postgres: bases catalog, booking y notification" _check_postgres_dbs
 
 _check_postgres_dbs() {
   local dbs
-  dbs=$(docker compose -f "$COMPOSE_FILE" exec -T postgres psql -U passly -d postgres \
+  dbs=$(docker compose -f "$COMPOSE_FILE" exec postgres psql -U passly -d postgres \
     -tAc "SELECT datname FROM pg_database WHERE datname IN ('catalog','booking','notification') ORDER BY datname;" 2>/dev/null)
   local count
   count=$(echo "$dbs" | grep -c '[^ ]' || true)

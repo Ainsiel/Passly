@@ -76,7 +76,7 @@ Assert "docker compose: nucleo healthy (postgres, keycloak, catalog, gateway, we
 
 # 2. Postgres: existen las 3 bases
 Assert "Postgres: bases catalog, booking y notification" {
-    $Dbs = docker compose -f $ComposeFile exec -T postgres psql -U passly -d postgres `
+    $Dbs = docker compose -f $ComposeFile exec postgres psql -U passly -d postgres `
         -tAc "SELECT datname FROM pg_database WHERE datname IN ('catalog','booking','notification') ORDER BY datname;" 2>$null
     @($Dbs | Where-Object { $_ -match "\S" }).Count -eq 3
 }
