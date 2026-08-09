@@ -83,6 +83,62 @@ jobs:
           chmod +x scripts/smoke.sh
           bash scripts/smoke.sh | tee smoke-results.txt
 
+      # ── k6 load testing ──────────────────────────────────────────
+
+      - name: Seed k6 test data
+        run: |
+          chmod +x tests/k6/seed.sh
+          bash tests/k6/seed.sh
+
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+            --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D68
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | \
+            sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update && sudo apt-get install k6 -y
+
+      - name: Run k6 benchmark
+        run: |
+          mkdir -p artifacts/k6
+          k6 run tests/k6/benchmark.js \
+            --summary-export=artifacts/k6/benchmark-summary.json \
+            --out json=artifacts/k6/benchmark.json || true
+
+      - name: Run k6 spike
+        run: |
+          k6 run tests/k6/spike.js \
+            --summary-export=artifacts/k6/spike-summary.json \
+            --out json=artifacts/k6/spike.json || true
+
+      - name: Run k6 concurrency
+        run: |
+          k6 run tests/k6/concurrency.js \
+            --summary-export=artifacts/k6/concurrency-summary.json \
+            --out json=artifacts/k6/concurrency.json || true
+
+      - name: Run k6 soak (5 min)
+        run: |
+          k6 run tests/k6/soak.js \
+            --summary-export=artifacts/k6/soak-summary.json \
+            --out json=artifacts/k6/soak.json || true
+
+      - name: Generate k6 HTML report
+        if: always()
+        run: |
+          python3 tests/k6/generate-report.py artifacts/k6/ > artifacts/k6/report.html || echo "Report generation skipped"
+
+      - name: Upload k6 reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-reports
+          path: artifacts/k6/
+          retention-days: 30
+
+      # ── Frontend / E2E ───────────────────────────────────────────
+
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}

@@ -5,10 +5,28 @@
 
 set -euo pipefail
 
-COMPOSE_FILE="$(cd "$(dirname "$0")/../infra" && pwd)/docker-compose.yml"
+# Resolve project root: try BASH_SOURCE first, fall back to git rev-parse
+if [ -n "${BASH_SOURCE[0]:-}" ]; then
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+else
+  SCRIPT_DIR="$(pwd)"
+fi
+COMPOSE_FILE="${SCRIPT_DIR}/../infra/docker-compose.yml"
+# Fallback: if compose file doesn't exist, try relative to cwd
+[ ! -f "$COMPOSE_FILE" ] && COMPOSE_FILE="$(pwd)/infra/docker-compose.yml"
 FAILURES=()
 PASSES=0
 SKIPS=0
+
+# Detect Python: use python3 on Linux, python on Windows
+if command -v python3 &>/dev/null && python3 --version &>/dev/null; then
+  PYTHON=python3
+elif command -v python &>/dev/null && python --version &>/dev/null; then
+  PYTHON=python
+else
+  echo "Error: python3 or python not found" >&2
+  exit 1
+fi
 
 # --- Helpers ---
 
@@ -56,7 +74,7 @@ get_token() {
     -d "client_id=admin-cli" \
     -d "client_secret=admin-cli-secret" \
     -d "username=${username}" \
-    -d "password=${password}" | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])"
+    -d "password=${password}" | $PYTHON -c "import sys,json; print(json.load(sys.stdin)['access_token'])"
 }
 
 # --- Discover running services ---
@@ -65,14 +83,12 @@ RUNNING=()
 while IFS= read -r svc; do
   [ -n "$svc" ] && RUNNING+=("$svc")
 done < <(docker compose -f "$COMPOSE_FILE" ps --format json 2>/dev/null \
-  | python3 -c "import sys,json; [print(json.loads(l)['Service']) for l in sys.stdin]" 2>/dev/null || true)
+  | $PYTHON -c "import sys,json; [print(json.loads(l)['Service']) for l in sys.stdin]" 2>/dev/null || true)
 
 echo "Smoke test del entorno de Passly"
 echo ""
 
 # --- Core checks ---
-
-assert "docker compose: nucleo healthy (postgres, keycloak, catalog, gateway, web)" _check_core_healthy
 
 _check_core_healthy() {
   local ps
@@ -80,7 +96,7 @@ _check_core_healthy() {
   local core=("postgres" "keycloak" "catalog-service" "gateway" "web")
   for svc in "${core[@]}"; do
     local status
-    status=$(echo "$ps" | python3 -c "
+    status=$(echo "$ps" | $PYTHON -c "
 import sys,json
 for l in sys.stdin:
   d=json.loads(l)
@@ -92,6 +108,8 @@ for l in sys.stdin:
   done
   return 0
 }
+
+assert "docker compose: nucleo healthy (postgres, keycloak, catalog, gateway, web)" _check_core_healthy
 
 assert "Postgres: bases catalog, booking y notification" _check_postgres_dbs
 
@@ -119,7 +137,7 @@ _check_keycloak_roles() {
   token=$(get_token "master" "admin" "admin")
   roles=$(curl -s "http://localhost:8080/admin/realms/passly/roles" \
     -H "Authorization: Bearer $token" 2>/dev/null)
-  echo "$roles" | python3 -c "
+  echo "$roles" | $PYTHON -c "
 import sys,json
 roles=json.load(sys.stdin)
 names={r['name'] for r in roles}
@@ -135,7 +153,7 @@ _check_keycloak_admin_user() {
   users=$(curl -s "http://localhost:8080/admin/realms/passly/users?username=admin" \
     -H "Authorization: Bearer $token" 2>/dev/null)
   local count
-  count=$(echo "$users" | python3 -c "
+  count=$(echo "$users" | $PYTHON -c "
 import sys,json
 users=json.load(sys.stdin)
 print(sum(1 for u in users if u.get('username')=='admin'))
@@ -157,7 +175,7 @@ _check_catalog_me_auth() {
   local token body
   token=$(get_token "passly" "admin" "admin123")
   body=$(curl -s "http://localhost:8081/me" -H "Authorization: Bearer $token" 2>/dev/null)
-  echo "$body" | python3 -c "
+  echo "$body" | $PYTHON -c "
 import sys,json
 d=json.load(sys.stdin)
 assert d.get('username')=='admin' and len(d.get('roles',[]))>=1
@@ -172,7 +190,7 @@ _check_gateway_me_auth() {
   local token body
   token=$(get_token "passly" "admin" "admin123")
   body=$(curl -s "http://localhost:8090/api/catalog/me" -H "Authorization: Bearer $token" 2>/dev/null)
-  echo "$body" | python3 -c "
+  echo "$body" | $PYTHON -c "
 import sys,json
 d=json.load(sys.stdin)
 assert d.get('username')=='admin' and len(d.get('roles',[]))>=1
