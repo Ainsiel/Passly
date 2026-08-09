@@ -29,16 +29,21 @@ export async function createReservation(
 	idempotencyKey: string,
 	email: string,
 ): Promise<BookingResult> {
-	const response = await fetch(`${BOOKING_BASE_URL}/reservations`, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${accessToken}`,
-			"X-Idempotency-Key": idempotencyKey,
-		},
-		body: JSON.stringify({ eventId, quantity, email }),
-		cache: "no-store",
-	});
+	let response: Response;
+	try {
+		response = await fetch(`${BOOKING_BASE_URL}/reservations`, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${accessToken}`,
+				"X-Idempotency-Key": idempotencyKey,
+			},
+			body: JSON.stringify({ eventId, quantity, email }),
+			cache: "no-store",
+		});
+	} catch (err) {
+		return { ok: false, status: 0, detail: `No se pudo conectar con el servicio de reservas: ${String(err)}` };
+	}
 
 	if (!response.ok) {
 		let detail = `Error ${response.status}`;
@@ -51,7 +56,12 @@ export async function createReservation(
 		return { ok: false, status: response.status, detail };
 	}
 
-	const data = (await response.json()) as ReservationResponse;
+	let data: ReservationResponse;
+	try {
+		data = (await response.json()) as ReservationResponse;
+	} catch {
+		return { ok: false, status: response.status, detail: "Respuesta inválida del servidor" };
+	}
 	return { ok: true, data };
 }
 
