@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# seed.sh — Inserta datos de prueba para k6 en la DB de booking-service.
+# seed.sh — Inserta datos de prueba en la DB de booking-service.
+# Semilla eventos de k6 (9999) y eventos usados en E2E (1, 8, 30).
 # Uso: bash tests/k6/seed.sh
 set -euo pipefail
 
@@ -8,7 +9,7 @@ PG_CONTAINER="${PG_CONTAINER:-passly-postgres}"
 EVENT_ID="${EVENT_ID:-9999}"
 CAPACITY="${CAPACITY:-100000}"
 
-echo "Seed: creando evento de prueba (id=$EVENT_ID, capacity=$CAPACITY)..."
+echo "Seed: creando evento de prueba para k6 (id=$EVENT_ID, capacity=$CAPACITY)..."
 
 docker exec "$PG_CONTAINER" psql -U passly -d booking -tAc "
 INSERT INTO event_projections (event_id, name, starts_at, price, capacity, reserved_tickets, version, updated_at)
@@ -20,7 +21,22 @@ ON CONFLICT (event_id) DO UPDATE SET
   updated_at = now();
 "
 
-echo "Seed: evento creado exitosamente."
+echo "Seed: sembrando eventos para tests E2E..."
+
+docker exec "$PG_CONTAINER" psql -U passly -d booking -tAc "
+INSERT INTO event_projections (event_id, name, starts_at, price, capacity, reserved_tickets, version, updated_at)
+VALUES
+  (1, 'Concierto de la Orquesta Sinfonica de Madrid', '2026-09-12T20:00:00', 45.00, 2200, 1900, 0, now()),
+  (8, 'Don Juan Tenorio', '2026-10-30T20:00:00', 35.00, 1500, 800, 0, now()),
+  (30, 'Taller de Cocina Saludable en Familia', '2026-09-26T12:00:00', 25.00, 50, 18, 0, now())
+ON CONFLICT (event_id) DO UPDATE SET
+  capacity = EXCLUDED.capacity,
+  reserved_tickets = EXCLUDED.reserved_tickets,
+  version = 0,
+  updated_at = now();
+"
+
+echo "Seed: todos los eventos creados exitosamente."
 echo "Seed: verificando conectividad del booking-service..."
 
 for i in $(seq 1 30); do
@@ -31,5 +47,5 @@ for i in $(seq 1 30); do
   sleep 2
 done
 
-echo "Seed: ADVERTENCIA - booking-service no responde健康 check después de 60s"
+echo "Seed: ADVERTENCIA - booking-service no responde health check después de 60s"
 exit 1
